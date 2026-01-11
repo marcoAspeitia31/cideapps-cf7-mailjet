@@ -82,7 +82,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		// Get form tags
 		$tags = $contact_form->scan_form_tags();
 		if ( empty( $tags ) ) {
-			return sanitize_text_field( $submitted_value );
+			return sanitize_text_field( $submitted );
 		}
 
 		// Find the tag with matching name
@@ -95,7 +95,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		}
 
 		if ( ! $field_tag ) {
-			return sanitize_text_field( $submitted_value );
+			return sanitize_text_field( $submitted );
 		}
 
 		// Get values, labels, and raw_values
@@ -139,8 +139,8 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			}
 		}
 
-		// Case 4: If not found, return original value sanitized
-		return sanitize_text_field( $submitted_value );
+		// Case 4: If not found, return normalized value sanitized
+		return sanitize_text_field( $submitted );
 	}
 
 	/**
@@ -192,22 +192,46 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		
 		// Handle service field (can be string or array for select/checkbox/radio fields)
 		$service = '';
+		$service_send_label = get_option( 'cideapps_cf7_mailjet_service_send_label', false );
+		$service_raw = ''; // Keep original for logging
+		
 		if ( isset( $posted_data[ $service_field ] ) ) {
 			if ( is_array( $posted_data[ $service_field ] ) ) {
-				$service = sanitize_text_field( $posted_data[ $service_field ][0] ?? '' );
+				// Handle array: sanitize each item, convert to label if enabled, join with ', '
+				$service_items = array();
+				$service_raw_items = array();
+				
+				foreach ( $posted_data[ $service_field ] as $item ) {
+					$item_sanitized = sanitize_text_field( $item );
+					if ( ! empty( $item_sanitized ) ) {
+						$service_raw_items[] = $item_sanitized;
+						
+						if ( $service_send_label ) {
+							$item_label = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $item_sanitized );
+							$service_items[] = $item_label;
+						} else {
+							$service_items[] = $item_sanitized;
+						}
+					}
+				}
+				
+				$service = implode( ', ', $service_items );
+				$service_raw = implode( ', ', $service_raw_items );
 			} else {
+				// Handle string: maintain current logic
 				$service = sanitize_text_field( $posted_data[ $service_field ] );
+				$service_raw = $service;
+				
+				// Convert service value to label if option is enabled
+				if ( $service_send_label && ! empty( $service ) ) {
+					$service = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $service );
+				}
 			}
 		}
 
-		// Convert service value to label if option is enabled
-		$service_send_label = get_option( 'cideapps_cf7_mailjet_service_send_label', false );
-		$service_raw         = $service; // Keep original for logging
-		if ( $service_send_label && ! empty( $service ) ) {
-			$service = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $service );
-			if ( $service !== $service_raw ) {
-				$this->logger->info( "Service field resolved: value '{$service_raw}' -> label '{$service}'" );
-			}
+		// Log conversion if values changed and debug is enabled
+		if ( ! empty( $service_raw ) && $service !== $service_raw ) {
+			$this->logger->info( "Service field resolved: value(s) '{$service_raw}' -> label(s) '{$service}'" );
 		}
 
 		// Validate email
