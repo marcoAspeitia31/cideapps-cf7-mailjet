@@ -261,13 +261,17 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		$this->logger->info( "Processing form submission for form ID {$form_id}, email: {$email}" );
 
 		// Prepare contact properties for Mailjet
-		$contact_properties = array(
-			'name'    => $name,
-			'phone'   => $phone,
-			'service' => $service,
-			'source'  => 'CF7',
-			'form_id' => (string) $form_id,
-		);
+		// Only include non-empty properties (custom properties must be created in Mailjet first)
+		$contact_properties = array();
+		if ( ! empty( $name ) ) {
+			$contact_properties['name'] = $name;
+		}
+		if ( ! empty( $phone ) ) {
+			$contact_properties['phone'] = $phone;
+		}
+		if ( ! empty( $service ) ) {
+			$contact_properties['service'] = $service;
+		}
 
 		// Add contact to list (if enabled)
 		$enable_contact_list_raw = get_option( 'cideapps_cf7_mailjet_enable_contact_list', 0 );

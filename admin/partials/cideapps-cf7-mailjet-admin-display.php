@@ -38,8 +38,7 @@ if ( isset( $_POST['cideapps_cf7_mailjet_test_list'] ) && $_POST['cideapps_cf7_m
 				$mailjet_api = new Cideapps_Cf7_Mailjet_API();
 				
 				$test_properties = array(
-					'name'   => 'Contacto de Prueba',
-					'source' => 'CF7-TEST',
+					'name' => 'Contacto de Prueba',
 				);
 				
 				$test_result = $mailjet_api->add_contact_to_list( $test_email, $test_properties, $test_list_id, 'update_properties' );
