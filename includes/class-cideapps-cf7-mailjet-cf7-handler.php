@@ -271,21 +271,33 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		);
 
 		// Add contact to list (if enabled)
-		$enable_contact_list = get_option( 'cideapps_cf7_mailjet_enable_contact_list', false );
+		$enable_contact_list_raw = get_option( 'cideapps_cf7_mailjet_enable_contact_list', 0 );
+		$enable_contact_list     = ( $enable_contact_list_raw === 1 || $enable_contact_list_raw === '1' || $enable_contact_list_raw === true );
+		
 		if ( $enable_contact_list ) {
-			$list_id           = (int) get_option( 'cideapps_cf7_mailjet_list_id', 0 );
-			$on_existing       = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
+			$list_id     = (int) get_option( 'cideapps_cf7_mailjet_list_id', 0 );
+			$on_existing = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
+
+			$this->logger->info( "Contact list enabled. List ID: {$list_id}, On existing: {$on_existing}, Email: {$email}" );
 
 			if ( ! empty( $list_id ) ) {
+				$this->logger->info( "Calling add_contact_to_list for email: {$email}, list_id: {$list_id}" );
 				$list_result = $this->mailjet_api->add_contact_to_list( $email, $contact_properties, $list_id, $on_existing );
+				
 				if ( is_wp_error( $list_result ) ) {
-					$this->logger->error( "Error adding contact to list: " . $list_result->get_error_message() );
+					$error_message = $list_result->get_error_message();
+					$error_code    = $list_result->get_error_code();
+					$error_data    = $list_result->get_error_data();
+					$status        = isset( $error_data['status'] ) ? $error_data['status'] : 'unknown';
+					$this->logger->error( "Error adding contact to list - Code: {$error_code}, Status: {$status}, Message: {$error_message}" );
 				} else {
 					$this->logger->info( "Contact successfully added/updated in list for email: {$email}" );
 				}
 			} else {
-				$this->logger->warning( "Contact list is enabled but list ID is not configured." );
+				$this->logger->warning( "Contact list is enabled but list ID is not configured (empty or 0)." );
 			}
+		} else {
+			$this->logger->info( "Contact list is disabled (enable_contact_list value: " . var_export( $enable_contact_list_raw, true ) . ")" );
 		}
 
 		// Send autoreply (if enabled)

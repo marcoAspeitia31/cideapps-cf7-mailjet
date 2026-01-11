@@ -133,11 +133,15 @@ class Cideapps_Cf7_Mailjet_API {
 				return $response;
 			}
 
-			// Get contact ID from response
+			// Get contact ID from response - Mailjet can return in different formats
 			if ( isset( $response['Data'][0]['ID'] ) ) {
 				$contact_id = (int) $response['Data'][0]['ID'];
+			} elseif ( isset( $response['Data']['ID'] ) ) {
+				$contact_id = (int) $response['Data']['ID'];
+			} elseif ( isset( $response['ID'] ) ) {
+				$contact_id = (int) $response['ID'];
 			} else {
-				return new WP_Error( 'no_contact_id', 'Could not get contact ID from Mailjet after creation.' );
+				return new WP_Error( 'no_contact_id', 'Could not get contact ID from Mailjet after creation. Response: ' . wp_json_encode( $response ) );
 			}
 
 			// Update properties for new contact if provided
@@ -269,7 +273,7 @@ class Cideapps_Cf7_Mailjet_API {
 		$endpoint = $this->contacts_api_base_url . 'listrecipient';
 		$data     = array(
 			'IsUnsubscribed' => false,
-			'ContactID'      => $contact_id,
+			'ContactID'      => (int) $contact_id,
 			'ListID'         => (int) $list_id,
 		);
 
@@ -278,15 +282,18 @@ class Cideapps_Cf7_Mailjet_API {
 		// If contact is already in list (409 Conflict), that's fine
 		if ( is_wp_error( $response ) ) {
 			$error_data = $response->get_error_data();
-			if ( isset( $error_data['status'] ) && $error_data['status'] === 409 ) {
+			$status     = isset( $error_data['status'] ) ? $error_data['status'] : 0;
+			
+			// 409 Conflict means contact is already in list - treat as success
+			if ( $status === 409 ) {
 				return array( 'success' => true, 'message' => 'Contact already in list' );
 			}
-			// Check error message for "already" text
-			if ( strpos( $response->get_error_message(), 'already' ) !== false ) {
-				return array( 'success' => true, 'message' => 'Contact already in list' );
-			}
+			
+			// For other errors (400, 401, 403, etc.), return the error
+			return $response;
 		}
 
+		// Success response
 		return $response;
 	}
 
