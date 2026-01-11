@@ -17,6 +17,65 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Test list connection (must be outside main form handler)
+if ( isset( $_POST['cideapps_cf7_mailjet_test_list'] ) && $_POST['cideapps_cf7_mailjet_test_list'] === '1' ) {
+	if ( check_admin_referer( 'cideapps_cf7_mailjet_test_list' ) ) {
+		$test_email = isset( $_POST['cideapps_cf7_mailjet_test_email'] ) ? sanitize_email( $_POST['cideapps_cf7_mailjet_test_email'] ) : '';
+		if ( empty( $test_email ) ) {
+			$current_user = wp_get_current_user();
+			$test_email   = $current_user->user_email;
+		}
+		
+		if ( ! empty( $test_email ) && is_email( $test_email ) ) {
+			$test_public_key  = get_option( 'cideapps_cf7_mailjet_public_key', '' );
+			$test_private_key = get_option( 'cideapps_cf7_mailjet_private_key', '' );
+			$test_list_id     = (int) get_option( 'cideapps_cf7_mailjet_list_id', 0 );
+			
+			if ( ! empty( $test_public_key ) && ! empty( $test_private_key ) && ! empty( $test_list_id ) ) {
+				// Get plugin directory path - this file is in admin/partials/, so we need to go up 2 levels
+				$plugin_dir = dirname( dirname( dirname( __FILE__ ) ) );
+				require_once $plugin_dir . '/includes/class-cideapps-cf7-mailjet-mailjet-api.php';
+				$mailjet_api = new Cideapps_Cf7_Mailjet_API();
+				
+				$test_properties = array(
+					'name'       => 'Contacto de Prueba',
+					'source'     => 'CF7-TEST',
+					'created_at' => current_time( 'mysql' ),
+				);
+				
+				$test_result = $mailjet_api->add_contact_to_list( $test_email, $test_properties, $test_list_id, 'update_properties' );
+				
+				if ( is_wp_error( $test_result ) ) {
+					$error_message = $test_result->get_error_message();
+					$error_code    = $test_result->get_error_code();
+					$error_data    = $test_result->get_error_data();
+					$status        = isset( $error_data['status'] ) ? $error_data['status'] : 'unknown';
+					$test_message  = sprintf( 
+						__( 'Error al probar la lista: %s (Código: %s, Status: %s)', 'cideapps-cf7-mailjet' ),
+						esc_html( $error_message ),
+						esc_html( $error_code ),
+						esc_html( $status )
+					);
+					$test_notice_type = 'error';
+				} else {
+					$test_message      = sprintf( 
+						__( '✓ Prueba exitosa: El contacto %s se agregó correctamente a la lista (ID: %d)', 'cideapps-cf7-mailjet' ),
+						esc_html( $test_email ),
+						esc_html( $test_list_id )
+					);
+					$test_notice_type = 'success';
+				}
+			} else {
+				$test_message      = __( 'Error: Faltan credenciales de Mailjet o List ID. Por favor, configura las credenciales y el List ID primero.', 'cideapps-cf7-mailjet' );
+				$test_notice_type = 'error';
+			}
+		} else {
+			$test_message      = __( 'Error: Email de prueba inválido.', 'cideapps-cf7-mailjet' );
+			$test_notice_type = 'error';
+		}
+	}
+}
+
 // Handle form submission
 if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_referer( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_settings_nonce' ) ) {
 	// Mailjet credentials
@@ -71,63 +130,6 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	}
 	$service_send_label_value = isset( $_POST['cideapps_cf7_mailjet_service_send_label'] ) && $_POST['cideapps_cf7_mailjet_service_send_label'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_service_send_label', $service_send_label_value );
-
-	// Test list connection
-	if ( isset( $_POST['cideapps_cf7_mailjet_test_list'] ) && $_POST['cideapps_cf7_mailjet_test_list'] === '1' ) {
-		check_admin_referer( 'cideapps_cf7_mailjet_test_list' );
-		
-		$test_email = isset( $_POST['cideapps_cf7_mailjet_test_email'] ) ? sanitize_email( $_POST['cideapps_cf7_mailjet_test_email'] ) : '';
-		if ( empty( $test_email ) ) {
-			$current_user = wp_get_current_user();
-			$test_email   = $current_user->user_email;
-		}
-		
-		if ( ! empty( $test_email ) && is_email( $test_email ) ) {
-			$test_public_key  = get_option( 'cideapps_cf7_mailjet_public_key', '' );
-			$test_private_key = get_option( 'cideapps_cf7_mailjet_private_key', '' );
-			$test_list_id     = (int) get_option( 'cideapps_cf7_mailjet_list_id', 0 );
-			
-			if ( ! empty( $test_public_key ) && ! empty( $test_private_key ) && ! empty( $test_list_id ) ) {
-				require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-mailjet-api.php';
-				$mailjet_api = new Cideapps_Cf7_Mailjet_API();
-				
-				$test_properties = array(
-					'name'       => 'Contacto de Prueba',
-					'source'     => 'CF7-TEST',
-					'created_at' => current_time( 'mysql' ),
-				);
-				
-				$test_result = $mailjet_api->add_contact_to_list( $test_email, $test_properties, $test_list_id, 'update_properties' );
-				
-				if ( is_wp_error( $test_result ) ) {
-					$error_message = $test_result->get_error_message();
-					$error_code    = $test_result->get_error_code();
-					$error_data    = $test_result->get_error_data();
-					$status        = isset( $error_data['status'] ) ? $error_data['status'] : 'unknown';
-					$test_message  = sprintf( 
-						__( 'Error al probar la lista: %s (Código: %s, Status: %s)', 'cideapps-cf7-mailjet' ),
-						esc_html( $error_message ),
-						esc_html( $error_code ),
-						esc_html( $status )
-					);
-					$test_notice_type = 'error';
-				} else {
-					$test_message      = sprintf( 
-						__( '✓ Prueba exitosa: El contacto %s se agregó correctamente a la lista (ID: %d)', 'cideapps-cf7-mailjet' ),
-						esc_html( $test_email ),
-						esc_html( $test_list_id )
-					);
-					$test_notice_type = 'success';
-				}
-			} else {
-				$test_message      = __( 'Error: Faltan credenciales de Mailjet o List ID. Por favor, configura las credenciales y el List ID primero.', 'cideapps-cf7-mailjet' );
-				$test_notice_type = 'error';
-			}
-		} else {
-			$test_message      = __( 'Error: Email de prueba inválido.', 'cideapps-cf7-mailjet' );
-			$test_notice_type = 'error';
-		}
-	}
 
 	// Security
 	if ( isset( $_POST['cideapps_cf7_mailjet_rate_limit_email_minutes'] ) ) {
