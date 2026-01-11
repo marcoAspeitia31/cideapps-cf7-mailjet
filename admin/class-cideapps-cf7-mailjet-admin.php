@@ -131,60 +131,14 @@ class Cideapps_Cf7_Mailjet_Admin {
 	/**
 	 * Register settings
 	 *
+	 * Note: This method is kept for potential future use with WordPress Settings API.
+	 * Currently, settings are processed manually in the display file.
+	 *
 	 * @since    1.0.0
 	 */
 	public function register_settings() {
-		// Mailjet credentials
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_public_key', 'sanitize_text_field' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_private_key', 'sanitize_text_field' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_from_email', 'sanitize_email' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_from_name', 'sanitize_text_field' );
-
-		// Autoreply
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_enable_autoreply', array( $this, 'sanitize_checkbox' ) );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_template_id', 'intval' );
-
-		// Contact list
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_enable_contact_list', array( $this, 'sanitize_checkbox' ) );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_list_id', 'intval' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_on_existing_contact', 'sanitize_text_field' );
-
-		// CF7
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_enabled_form_ids', array( $this, 'sanitize_array' ) );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_email_field', 'sanitize_text_field' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_name_field', 'sanitize_text_field' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_phone_field', 'sanitize_text_field' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_service_field', 'sanitize_text_field' );
-
-		// Security
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_rate_limit_email_minutes', 'intval' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 'intval' );
-		register_setting( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_debug_logs', array( $this, 'sanitize_checkbox' ) );
-	}
-
-	/**
-	 * Sanitize checkbox value
-	 *
-	 * @since    1.0.0
-	 * @param    mixed    $value    Input value
-	 * @return   bool     Sanitized checkbox value
-	 */
-	public function sanitize_checkbox( $value ) {
-		return isset( $value ) && $value === '1';
-	}
-
-	/**
-	 * Sanitize array value
-	 *
-	 * @since    1.0.0
-	 * @param    mixed    $value    Input value
-	 * @return   array    Sanitized array value
-	 */
-	public function sanitize_array( $value ) {
-		if ( ! is_array( $value ) ) {
-			return array();
-		}
-		return array_map( 'intval', $value );
+		// Settings are processed manually in admin-display.php
+		// This method is kept for potential future use
 	}
 
 }
