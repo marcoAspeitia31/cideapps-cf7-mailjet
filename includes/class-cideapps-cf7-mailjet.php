@@ -122,6 +122,26 @@ class Cideapps_Cf7_Mailjet {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-cideapps-cf7-mailjet-public.php';
 
+		/**
+		 * The class responsible for Mailjet API integration.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-mailjet-api.php';
+
+		/**
+		 * The class responsible for rate limiting.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-rate-limit.php';
+
+		/**
+		 * The class responsible for logging.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-logger.php';
+
+		/**
+		 * The class responsible for handling CF7 submissions.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-cf7-handler.php';
+
 		$this->loader = new Cideapps_Cf7_Mailjet_Loader();
 
 	}
@@ -156,6 +176,8 @@ class Cideapps_Cf7_Mailjet {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_settings_page' );
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
 
 	}
 
@@ -172,6 +194,10 @@ class Cideapps_Cf7_Mailjet {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		// Hook into CF7 form submission
+		$cf7_handler = new Cideapps_Cf7_Mailjet_CF7_Handler();
+		$this->loader->add_action( 'wpcf7_mail_sent', $cf7_handler, 'handle_form_submission' );
 
 	}
 
