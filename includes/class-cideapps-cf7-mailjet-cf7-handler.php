@@ -105,7 +105,16 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		$email = isset( $posted_data[ $email_field ] ) ? sanitize_email( $posted_data[ $email_field ] ) : '';
 		$name  = isset( $posted_data[ $name_field ] ) ? sanitize_text_field( $posted_data[ $name_field ] ) : '';
 		$phone = isset( $posted_data[ $phone_field ] ) ? sanitize_text_field( $posted_data[ $phone_field ] ) : '';
-		$service = isset( $posted_data[ $service_field ] ) ? sanitize_text_field( $posted_data[ $service_field ] ) : '';
+		
+		// Handle service field (can be string or array for select/checkbox/radio fields)
+		$service = '';
+		if ( isset( $posted_data[ $service_field ] ) ) {
+			if ( is_array( $posted_data[ $service_field ] ) ) {
+				$service = sanitize_text_field( $posted_data[ $service_field ][0] ?? '' );
+			} else {
+				$service = sanitize_text_field( $posted_data[ $service_field ] );
+			}
+		}
 
 		// Validate email
 		if ( empty( $email ) || ! is_email( $email ) ) {
