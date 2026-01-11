@@ -76,10 +76,13 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			return '';
 		}
 
+		// Normalize submitted value for comparison
+		$submitted = trim( (string) $submitted_value );
+
 		// Get form tags
 		$tags = $contact_form->scan_form_tags();
 		if ( empty( $tags ) ) {
-			return $submitted_value;
+			return sanitize_text_field( $submitted_value );
 		}
 
 		// Find the tag with matching name
@@ -92,38 +95,51 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		}
 
 		if ( ! $field_tag ) {
-			return $submitted_value;
+			return sanitize_text_field( $submitted_value );
 		}
 
-		// Get values and labels
-		$values = isset( $field_tag->values ) && is_array( $field_tag->values ) ? $field_tag->values : array();
-		$labels = isset( $field_tag->labels ) && is_array( $field_tag->labels ) ? $field_tag->labels : array();
+		// Get values, labels, and raw_values
+		$values    = isset( $field_tag->values ) && is_array( $field_tag->values ) ? $field_tag->values : array();
+		$labels    = isset( $field_tag->labels ) && is_array( $field_tag->labels ) ? $field_tag->labels : array();
+		$raw_values = isset( $field_tag->raw_values ) && is_array( $field_tag->raw_values ) ? $field_tag->raw_values : array();
 
-		// If we have labels, use them; otherwise, values serve as both
+		// Case 1: If we have labels and values arrays with matching counts
 		if ( ! empty( $labels ) && count( $labels ) === count( $values ) ) {
-			// Search for the value in values array
+			// Search for the value in values array using trim() comparison
 			foreach ( $values as $index => $value ) {
-				if ( $value === $submitted_value ) {
+				if ( trim( (string) $value ) === $submitted ) {
 					return sanitize_text_field( $labels[ $index ] );
 				}
 			}
-		} else {
-			// For CF7, format is often "Label|value" in values array
-			foreach ( $values as $value ) {
+		}
+
+		// Case 2: Fallback for "Label|value" format in raw_values
+		if ( ! empty( $raw_values ) ) {
+			foreach ( $raw_values as $raw ) {
 				// Split by pipe if present (format: "Label|value")
-				if ( strpos( $value, '|' ) !== false ) {
-					list( $label, $val ) = explode( '|', $value, 2 );
-					if ( trim( $val ) === $submitted_value ) {
-						return sanitize_text_field( trim( $label ) );
+				if ( strpos( $raw, '|' ) !== false ) {
+					$parts = explode( '|', $raw, 2 );
+					if ( count( $parts ) === 2 ) {
+						$label = trim( $parts[0] );
+						$val   = trim( $parts[1] );
+						if ( $val === $submitted ) {
+							return sanitize_text_field( $label );
+						}
 					}
-				} elseif ( $value === $submitted_value ) {
-					// If no pipe, value equals label
-					return sanitize_text_field( $value );
 				}
 			}
 		}
 
-		// If not found, return original value
+		// Case 3: Check if submitted matches any label directly
+		if ( ! empty( $labels ) ) {
+			foreach ( $labels as $label ) {
+				if ( trim( (string) $label ) === $submitted ) {
+					return sanitize_text_field( $label );
+				}
+			}
+		}
+
+		// Case 4: If not found, return original value sanitized
 		return sanitize_text_field( $submitted_value );
 	}
 
