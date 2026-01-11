@@ -262,12 +262,11 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 
 		// Prepare contact properties for Mailjet
 		$contact_properties = array(
-			'name'       => $name,
-			'phone'      => $phone,
-			'service'    => $service,
-			'source'     => 'CF7',
-			'form_id'    => (string) $form_id,
-			'created_at' => current_time( 'mysql' ),
+			'name'    => $name,
+			'phone'   => $phone,
+			'service' => $service,
+			'source'  => 'CF7',
+			'form_id' => (string) $form_id,
 		);
 
 		// Add contact to list (if enabled)
