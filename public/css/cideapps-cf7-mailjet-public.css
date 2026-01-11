@@ -1,4 +1,52 @@
 /**
- * All of the CSS for your public-facing functionality should be
- * included in this file.
+ * CF7 Mailjet Public Styles
  */
+
+/* Loader spinner */
+.cideapps-cf7-loader {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	margin-left: 8px;
+	vertical-align: middle;
+	border: 2px solid #f3f3f3;
+	border-top: 2px solid #0073aa;
+	border-radius: 50%;
+	animation: cideapps-cf7-spin 1s linear infinite;
+}
+
+.cideapps-cf7-loader.hidden {
+	display: none;
+}
+
+@keyframes cideapps-cf7-spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+/* Disabled button styles */
+input[type="submit"].cideapps-cf7-submitting,
+button[type="submit"].cideapps-cf7-submitting {
+	opacity: 0.6;
+	cursor: not-allowed;
+	position: relative;
+}
+
+/* Alternative loader with text */
+.cideapps-cf7-loader-text {
+	display: inline-block;
+	margin-left: 8px;
+	font-size: 0.9em;
+	color: #666;
+}
+
+.cideapps-cf7-loader-text::after {
+	content: '...';
+	animation: cideapps-cf7-dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes cideapps-cf7-dots {
+	0%, 20% { content: '.'; }
+	40% { content: '..'; }
+	60%, 100% { content: '...'; }
+}

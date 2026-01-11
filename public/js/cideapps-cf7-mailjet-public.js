@@ -2,31 +2,65 @@
 	'use strict';
 
 	/**
-	 * All of the code for your public-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
+	 * Handle CF7 form submission - disable button and show loader
 	 */
+	$( document ).ready( function() {
+		// Listen for all CF7 form submission events
+		$( document ).on( 'wpcf7submit', 'form.wpcf7-form', function( event ) {
+			var $form = $( this );
+			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
+			var $loader = $form.find( '.cideapps-cf7-loader' );
+
+			// Disable submit button
+			$submitButton.prop( 'disabled', true ).addClass( 'cideapps-cf7-submitting' );
+
+			// Show loader if it exists, otherwise create it
+			if ( $loader.length === 0 ) {
+				$loader = $( '<span class="cideapps-cf7-loader"></span>' );
+				$submitButton.after( $loader );
+			}
+			$loader.show();
+		} );
+
+		// Re-enable button and hide loader on successful submission
+		$( document ).on( 'wpcf7mailsent', 'form.wpcf7-form', function( event ) {
+			var $form = $( this );
+			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
+			var $loader = $form.find( '.cideapps-cf7-loader' );
+
+			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
+			$loader.hide();
+		} );
+
+		// Re-enable button and hide loader on validation error
+		$( document ).on( 'wpcf7invalid', 'form.wpcf7-form', function( event ) {
+			var $form = $( this );
+			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
+			var $loader = $form.find( '.cideapps-cf7-loader' );
+
+			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
+			$loader.hide();
+		} );
+
+		// Re-enable button and hide loader on spam detection
+		$( document ).on( 'wpcf7spam', 'form.wpcf7-form', function( event ) {
+			var $form = $( this );
+			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
+			var $loader = $form.find( '.cideapps-cf7-loader' );
+
+			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
+			$loader.hide();
+		} );
+
+		// Re-enable button and hide loader on mail failed
+		$( document ).on( 'wpcf7mailfailed', 'form.wpcf7-form', function( event ) {
+			var $form = $( this );
+			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
+			var $loader = $form.find( '.cideapps-cf7-loader' );
+
+			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
+			$loader.hide();
+		} );
+	} );
 
 })( jQuery );
