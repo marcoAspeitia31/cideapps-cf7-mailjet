@@ -69,6 +69,8 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	if ( isset( $_POST['cideapps_cf7_mailjet_service_field'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_service_field', sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_service_field'] ) ) );
 	}
+	$service_send_label_value = isset( $_POST['cideapps_cf7_mailjet_service_send_label'] ) && $_POST['cideapps_cf7_mailjet_service_send_label'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_service_send_label', $service_send_label_value );
 
 	// Security
 	if ( isset( $_POST['cideapps_cf7_mailjet_rate_limit_email_minutes'] ) ) {
@@ -122,6 +124,8 @@ $email_field             = get_option( 'cideapps_cf7_mailjet_email_field', 'your
 $name_field              = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
 $phone_field             = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
 $service_field           = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
+$service_send_label_raw  = get_option( 'cideapps_cf7_mailjet_service_send_label', 0 );
+$service_send_label      = ( $service_send_label_raw === 1 || $service_send_label_raw === '1' || $service_send_label_raw === true );
 $rate_limit_email_minutes = get_option( 'cideapps_cf7_mailjet_rate_limit_email_minutes', 10 );
 $rate_limit_ip_minutes    = get_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 10 );
 $debug_logs_raw           = get_option( 'cideapps_cf7_mailjet_debug_logs', 0 );
@@ -293,6 +297,16 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 					<td>
 						<input type="text" id="cideapps_cf7_mailjet_service_field" name="cideapps_cf7_mailjet_service_field" value="<?php echo esc_attr( $service_field ); ?>" class="regular-text" />
 						<p class="description"><?php esc_html_e( 'Nombre del campo de servicio en CF7 (por defecto: service)', 'cideapps-cf7-mailjet' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Enviar Label del Servicio', 'cideapps-cf7-mailjet' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="cideapps_cf7_mailjet_service_send_label" name="cideapps_cf7_mailjet_service_send_label" value="1" <?php checked( $service_send_label, true ); ?> />
+							<?php esc_html_e( 'Enviar label del servicio (en vez del value) a Mailjet', 'cideapps-cf7-mailjet' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Si está activado, se enviará el label humano (ej: "Apps Móviles") en lugar del value (ej: "apps-moviles") al template de Mailjet.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 			</table>

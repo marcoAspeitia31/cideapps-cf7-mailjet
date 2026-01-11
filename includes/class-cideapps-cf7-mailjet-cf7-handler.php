@@ -60,6 +60,74 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	}
 
 	/**
+	 * Resolve CF7 field label from value
+	 *
+	 * Given a CF7 form, field name, and submitted value, returns the human-readable label.
+	 * Works with select, radio, and checkbox fields.
+	 *
+	 * @since    1.0.0
+	 * @param    WPCF7_ContactForm    $contact_form    CF7 contact form object
+	 * @param    string               $field_name      Field name (e.g., 'service')
+	 * @param    string               $submitted_value Submitted value (e.g., 'apps-moviles')
+	 * @return   string    Label if found, original value if not found
+	 */
+	private function resolve_cf7_label_from_value( $contact_form, $field_name, $submitted_value ) {
+		if ( empty( $submitted_value ) ) {
+			return '';
+		}
+
+		// Get form tags
+		$tags = $contact_form->scan_form_tags();
+		if ( empty( $tags ) ) {
+			return $submitted_value;
+		}
+
+		// Find the tag with matching name
+		$field_tag = null;
+		foreach ( $tags as $tag ) {
+			if ( isset( $tag->name ) && $tag->name === $field_name ) {
+				$field_tag = $tag;
+				break;
+			}
+		}
+
+		if ( ! $field_tag ) {
+			return $submitted_value;
+		}
+
+		// Get values and labels
+		$values = isset( $field_tag->values ) && is_array( $field_tag->values ) ? $field_tag->values : array();
+		$labels = isset( $field_tag->labels ) && is_array( $field_tag->labels ) ? $field_tag->labels : array();
+
+		// If we have labels, use them; otherwise, values serve as both
+		if ( ! empty( $labels ) && count( $labels ) === count( $values ) ) {
+			// Search for the value in values array
+			foreach ( $values as $index => $value ) {
+				if ( $value === $submitted_value ) {
+					return sanitize_text_field( $labels[ $index ] );
+				}
+			}
+		} else {
+			// For CF7, format is often "Label|value" in values array
+			foreach ( $values as $value ) {
+				// Split by pipe if present (format: "Label|value")
+				if ( strpos( $value, '|' ) !== false ) {
+					list( $label, $val ) = explode( '|', $value, 2 );
+					if ( trim( $val ) === $submitted_value ) {
+						return sanitize_text_field( trim( $label ) );
+					}
+				} elseif ( $value === $submitted_value ) {
+					// If no pipe, value equals label
+					return sanitize_text_field( $value );
+				}
+			}
+		}
+
+		// If not found, return original value
+		return sanitize_text_field( $submitted_value );
+	}
+
+	/**
 	 * Handle CF7 form submission
 	 *
 	 * @since    1.0.0
@@ -113,6 +181,16 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 				$service = sanitize_text_field( $posted_data[ $service_field ][0] ?? '' );
 			} else {
 				$service = sanitize_text_field( $posted_data[ $service_field ] );
+			}
+		}
+
+		// Convert service value to label if option is enabled
+		$service_send_label = get_option( 'cideapps_cf7_mailjet_service_send_label', false );
+		$service_raw         = $service; // Keep original for logging
+		if ( $service_send_label && ! empty( $service ) ) {
+			$service = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $service );
+			if ( $service !== $service_raw ) {
+				$this->logger->info( "Service field resolved: value '{$service_raw}' -> label '{$service}'" );
 			}
 		}
 
