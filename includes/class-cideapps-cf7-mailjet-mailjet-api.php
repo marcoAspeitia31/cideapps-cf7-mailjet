@@ -110,28 +110,22 @@ class Cideapps_Cf7_Mailjet_API {
 			return $contact_id;
 		}
 
-		// Prepare contact data
+		// Prepare contact data (only Email for creation)
 		$contact_data = array(
 			'Email' => sanitize_email( $email ),
 		);
 
 		// Create or update contact
 		if ( $contact_id ) {
-			// Contact exists - update it if we have properties
-			if ( ! empty( $properties ) && is_array( $properties ) ) {
-				// Update contact properties using PUT
-				$contact_data['Properties'] = $properties;
-				$endpoint                   = $this->contacts_api_base_url . 'contact/' . $contact_id;
-				$response                   = $this->make_request( $endpoint, 'PUT', $contact_data );
-				if ( is_wp_error( $response ) ) {
-					return $response;
+			// Contact exists - update properties if needed
+			if ( $on_existing === 'update_properties' && ! empty( $properties ) && is_array( $properties ) ) {
+				$update_result = $this->update_contact_properties( $contact_id, $properties );
+				if ( is_wp_error( $update_result ) ) {
+					return $update_result;
 				}
 			}
 		} else {
-			// Create new contact
-			if ( ! empty( $properties ) && is_array( $properties ) ) {
-				$contact_data['Properties'] = $properties;
-			}
+			// Create new contact (without properties)
 			$endpoint = $this->contacts_api_base_url . 'contact';
 			$response = $this->make_request( $endpoint, 'POST', $contact_data );
 
@@ -142,6 +136,17 @@ class Cideapps_Cf7_Mailjet_API {
 			// Get contact ID from response
 			if ( isset( $response['Data'][0]['ID'] ) ) {
 				$contact_id = (int) $response['Data'][0]['ID'];
+			} else {
+				return new WP_Error( 'no_contact_id', 'Could not get contact ID from Mailjet after creation.' );
+			}
+
+			// Update properties for new contact if provided
+			if ( ! empty( $properties ) && is_array( $properties ) ) {
+				$update_result = $this->update_contact_properties( $contact_id, $properties );
+				if ( is_wp_error( $update_result ) ) {
+					// Log error but don't fail the whole operation
+					return $update_result;
+				}
 			}
 		}
 
@@ -175,22 +180,30 @@ class Cideapps_Cf7_Mailjet_API {
 	 *
 	 * @since    1.0.0
 	 * @param    string    $email    Contact email
-	 * @return   int|WP_Error    Contact ID or WP_Error on failure
+	 * @return   int|false|WP_Error    Contact ID, false if not found (404), or WP_Error on failure
 	 */
 	private function get_contact_id( $email ) {
 		$endpoint = $this->contacts_api_base_url . 'contact/' . urlencode( $email );
 		$response = $this->make_request( $endpoint, 'GET' );
 
 		if ( is_wp_error( $response ) ) {
-			// 404 means contact doesn't exist, which is fine
 			$error_code = $response->get_error_code();
 			if ( $error_code === 'mailjet_api_error' ) {
 				$error_data = $response->get_error_data();
-				if ( isset( $error_data['status'] ) && $error_data['status'] === 404 ) {
+				$status     = isset( $error_data['status'] ) ? $error_data['status'] : 0;
+
+				// 404 means contact doesn't exist, which is fine - return false
+				if ( $status === 404 ) {
 					return false;
 				}
+
+				// For 401/403/429/5xx, return WP_Error to allow logging
+				if ( in_array( $status, array( 401, 403, 429 ), true ) || ( $status >= 500 && $status < 600 ) ) {
+					return $response;
+				}
 			}
-			return false; // Return false instead of error for non-existence
+			// For other errors, return as WP_Error
+			return $response;
 		}
 
 		// Mailjet API returns contact data directly when getting by email
@@ -204,6 +217,36 @@ class Cideapps_Cf7_Mailjet_API {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Update contact properties using contactdata endpoint
+	 *
+	 * @since    1.0.0
+	 * @param    int       $contact_id  Contact ID
+	 * @param    array     $properties  Contact properties as associative array
+	 * @return   array|WP_Error    Response array or WP_Error on failure
+	 */
+	private function update_contact_properties( $contact_id, $properties ) {
+		if ( empty( $properties ) || ! is_array( $properties ) ) {
+			return array( 'success' => true, 'message' => 'No properties to update' );
+		}
+
+		// Convert associative array to Mailjet Data format: [{"Name":"key","Value":"value"},...]
+		$data_array = array();
+		foreach ( $properties as $name => $value ) {
+			$data_array[] = array(
+				'Name'  => sanitize_text_field( $name ),
+				'Value' => sanitize_text_field( $value ),
+			);
+		}
+
+		$endpoint = $this->contacts_api_base_url . 'contactdata/' . (int) $contact_id;
+		$data     = array( 'Data' => $data_array );
+
+		$response = $this->make_request( $endpoint, 'PUT', $data );
+
+		return $response;
 	}
 
 	/**
