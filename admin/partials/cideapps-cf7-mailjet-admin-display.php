@@ -34,13 +34,15 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	}
 
 	// Autoreply
-	update_option( 'cideapps_cf7_mailjet_enable_autoreply', isset( $_POST['cideapps_cf7_mailjet_enable_autoreply'] ) ? 1 : 0 );
+	$enable_autoreply_value = isset( $_POST['cideapps_cf7_mailjet_enable_autoreply'] ) && $_POST['cideapps_cf7_mailjet_enable_autoreply'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_enable_autoreply', $enable_autoreply_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_template_id'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_template_id', intval( $_POST['cideapps_cf7_mailjet_template_id'] ) );
 	}
 
 	// Contact list
-	update_option( 'cideapps_cf7_mailjet_enable_contact_list', isset( $_POST['cideapps_cf7_mailjet_enable_contact_list'] ) ? 1 : 0 );
+	$enable_contact_list_value = isset( $_POST['cideapps_cf7_mailjet_enable_contact_list'] ) && $_POST['cideapps_cf7_mailjet_enable_contact_list'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_enable_contact_list', $enable_contact_list_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_list_id'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_list_id', intval( $_POST['cideapps_cf7_mailjet_list_id'] ) );
 	}
@@ -75,8 +77,16 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	if ( isset( $_POST['cideapps_cf7_mailjet_rate_limit_ip_minutes'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', intval( $_POST['cideapps_cf7_mailjet_rate_limit_ip_minutes'] ) );
 	}
-	update_option( 'cideapps_cf7_mailjet_debug_logs', isset( $_POST['cideapps_cf7_mailjet_debug_logs'] ) ? 1 : 0 );
+	$debug_logs_value = isset( $_POST['cideapps_cf7_mailjet_debug_logs'] ) && $_POST['cideapps_cf7_mailjet_debug_logs'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_debug_logs', $debug_logs_value );
 
+	// Redirect to avoid resubmission
+	wp_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'options-general.php?page=cideapps-cf7-mailjet' ) ) );
+	exit;
+}
+
+// Show success message if redirected
+if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true' ) {
 	echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Configuración guardada correctamente.', 'cideapps-cf7-mailjet' ) . '</p></div>';
 }
 
@@ -101,9 +111,9 @@ $public_key              = get_option( 'cideapps_cf7_mailjet_public_key', '' );
 $private_key             = get_option( 'cideapps_cf7_mailjet_private_key', '' );
 $from_email              = get_option( 'cideapps_cf7_mailjet_from_email', '' );
 $from_name               = get_option( 'cideapps_cf7_mailjet_from_name', '' );
-$enable_autoreply        = get_option( 'cideapps_cf7_mailjet_enable_autoreply', false );
+$enable_autoreply        = (bool) get_option( 'cideapps_cf7_mailjet_enable_autoreply', false );
 $template_id             = get_option( 'cideapps_cf7_mailjet_template_id', 0 );
-$enable_contact_list     = get_option( 'cideapps_cf7_mailjet_enable_contact_list', false );
+$enable_contact_list     = (bool) get_option( 'cideapps_cf7_mailjet_enable_contact_list', false );
 $list_id                 = get_option( 'cideapps_cf7_mailjet_list_id', 0 );
 $on_existing_contact     = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
 $enabled_form_ids        = get_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
@@ -113,7 +123,7 @@ $phone_field             = get_option( 'cideapps_cf7_mailjet_phone_field', 'your
 $service_field           = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
 $rate_limit_email_minutes = get_option( 'cideapps_cf7_mailjet_rate_limit_email_minutes', 10 );
 $rate_limit_ip_minutes    = get_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 10 );
-$debug_logs               = get_option( 'cideapps_cf7_mailjet_debug_logs', false );
+$debug_logs               = (bool) get_option( 'cideapps_cf7_mailjet_debug_logs', false );
 ?>
 
 <div class="wrap">
@@ -177,7 +187,7 @@ $debug_logs               = get_option( 'cideapps_cf7_mailjet_debug_logs', false
 					<th scope="row"><?php esc_html_e( 'Habilitar Autorespuesta', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
-							<input type="checkbox" id="cideapps_cf7_mailjet_enable_autoreply" name="cideapps_cf7_mailjet_enable_autoreply" value="1" <?php checked( $enable_autoreply, 1 ); ?> />
+							<input type="checkbox" id="cideapps_cf7_mailjet_enable_autoreply" name="cideapps_cf7_mailjet_enable_autoreply" value="1" <?php checked( $enable_autoreply, true ); ?> />
 							<?php esc_html_e( 'Enviar autorespuesta cuando se envíe un formulario', 'cideapps-cf7-mailjet' ); ?>
 						</label>
 					</td>
@@ -201,7 +211,7 @@ $debug_logs               = get_option( 'cideapps_cf7_mailjet_debug_logs', false
 					<th scope="row"><?php esc_html_e( 'Habilitar Lista de Contactos', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
-							<input type="checkbox" id="cideapps_cf7_mailjet_enable_contact_list" name="cideapps_cf7_mailjet_enable_contact_list" value="1" <?php checked( $enable_contact_list, 1 ); ?> />
+							<input type="checkbox" id="cideapps_cf7_mailjet_enable_contact_list" name="cideapps_cf7_mailjet_enable_contact_list" value="1" <?php checked( $enable_contact_list, true ); ?> />
 							<?php esc_html_e( 'Guardar contactos en lista de Mailjet', 'cideapps-cf7-mailjet' ); ?>
 						</label>
 					</td>
@@ -311,7 +321,7 @@ $debug_logs               = get_option( 'cideapps_cf7_mailjet_debug_logs', false
 					<th scope="row"><?php esc_html_e( 'Logs de Depuración', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
-							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, 1 ); ?> />
+							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, true ); ?> />
 							<?php esc_html_e( 'Habilitar logs de depuración (usar error_log de PHP)', 'cideapps-cf7-mailjet' ); ?>
 						</label>
 					</td>

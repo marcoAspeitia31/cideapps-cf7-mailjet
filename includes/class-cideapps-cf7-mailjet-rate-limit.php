@@ -65,6 +65,11 @@ class Cideapps_Cf7_Mailjet_Rate_Limit {
 	 * @return   bool      True if rate limited, false otherwise
 	 */
 	public function is_ip_rate_limited( $ip ) {
+		// Don't apply rate limit for empty or invalid IPs
+		if ( empty( $ip ) || $ip === '0.0.0.0' ) {
+			return false;
+		}
+
 		$minutes = (int) get_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 10 );
 		if ( $minutes <= 0 ) {
 			return false; // Rate limiting disabled
@@ -84,6 +89,11 @@ class Cideapps_Cf7_Mailjet_Rate_Limit {
 	 * @return   void
 	 */
 	public function set_ip_rate_limit( $ip ) {
+		// Don't set rate limit for empty or invalid IPs
+		if ( empty( $ip ) || $ip === '0.0.0.0' ) {
+			return;
+		}
+
 		$minutes = (int) get_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 10 );
 		if ( $minutes <= 0 ) {
 			return; // Rate limiting disabled
@@ -96,32 +106,20 @@ class Cideapps_Cf7_Mailjet_Rate_Limit {
 	/**
 	 * Get client IP address
 	 *
+	 * Security: Only use REMOTE_ADDR to prevent IP spoofing via headers.
+	 * Headers like X-Forwarded-For, Client-IP, etc. can be spoofed by clients.
+	 *
 	 * @since    1.0.0
-	 * @return   string    Client IP address
+	 * @return   string    Client IP address or '0.0.0.0' if not available
 	 */
 	public function get_client_ip() {
-		$ip_keys = array(
-			'HTTP_CLIENT_IP',
-			'HTTP_X_FORWARDED_FOR',
-			'HTTP_X_FORWARDED',
-			'HTTP_X_CLUSTER_CLIENT_IP',
-			'HTTP_FORWARDED_FOR',
-			'HTTP_FORWARDED',
-			'REMOTE_ADDR',
-		);
-
-		foreach ( $ip_keys as $key ) {
-			if ( array_key_exists( $key, $_SERVER ) === true ) {
-				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
-					$ip = trim( $ip );
-					if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
-						return $ip;
-					}
-				}
-			}
+		// Only use REMOTE_ADDR - the only IP header that cannot be spoofed by clients
+		if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
+			return sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
 		}
 
-		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
+		// Fallback if REMOTE_ADDR doesn't exist
+		return '0.0.0.0';
 	}
 }
 
