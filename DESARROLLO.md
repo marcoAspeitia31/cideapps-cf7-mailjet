@@ -75,6 +75,7 @@ Agregar una página en:
 
 #### CF7
 - enabled_form_ids (array de IDs CF7)
+- form_mail_modes (array `[ form_id => 'cf7_mail' | 'mailjet_only' ]`, default: `cf7_mail`)
 - email_field (default: your-email)
 - name_field (default: your-name)
 - phone_field (default: your-phone)
@@ -89,26 +90,43 @@ Agregar una página en:
 
 ## 2. LISTENER DE CONTACT FORM 7
 
-Usar el hook:
+### Hooks
 
 ```php
-wpcf7_mail_sent
-````
+wpcf7_skip_mail   // maybe_skip_cf7_mail — solo si modo mailjet_only
+wpcf7_mail_sent   // handle_form_submission → process_submission()
+```
 
-### Flujo:
+### Modos de envío por formulario
+
+| Modo | Comportamiento |
+|------|----------------|
+| `cf7_mail` (default) | CF7 envía correo nativo (`wp_mail`). Si tiene éxito, corre Mailjet. |
+| `mailjet_only` | `wpcf7_skip_mail` omite correo CF7. CF7 marca `mail_sent` y corre Mailjet vía HTTPS API. |
+
+**Limitación en `mailjet_only`:** la pestaña Mail de CF7 no notifica al administrador.
+
+**Mejora futura:** enviar notificación administrativa con plantilla Mailjet (Send API).
+
+### Flujo (`process_submission`):
 
 1. Verificar que el formulario enviado esté habilitado
 2. Obtener `WPCF7_Submission`
 3. Sanitizar campos
 4. Validar email
-5. Aplicar rate limit:
+5. Idempotencia (transient 5 min: form_id + email hash + posted_data hash)
+6. Aplicar rate limit (email + IP)
+7. Ejecutar acciones Mailjet (lista + autorespuesta)
 
-   * por email
-   * por IP
-6. Ejecutar acciones Mailjet:
+### Logs (si `debug_logs` activo)
 
-   * Guardar contacto en lista (si está activo)
-   * Enviar autorespuesta (si está activo)
+- `Delivery mode for form {id}: {mode}`
+- `wpcf7_skip_mail applied: yes/no`
+- `Skipped: submission already processed...`
+
+---
+
+Ver checklist de pruebas en `PRUEBAS-MANUALES.md`.
 
 ---
 
