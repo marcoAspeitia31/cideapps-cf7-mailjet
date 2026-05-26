@@ -197,6 +197,7 @@ class Cideapps_Cf7_Mailjet {
 
 		// Hook into CF7 form submission
 		$cf7_handler = new Cideapps_Cf7_Mailjet_CF7_Handler();
+		$this->loader->add_filter( 'wpcf7_skip_mail', $cf7_handler, 'maybe_skip_cf7_mail', 10, 2 );
 		$this->loader->add_action( 'wpcf7_mail_sent', $cf7_handler, 'handle_form_submission' );
 
 	}
