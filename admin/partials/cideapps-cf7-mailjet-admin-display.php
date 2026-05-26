@@ -114,6 +114,18 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	} else {
 		update_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
 	}
+	if ( isset( $_POST['cideapps_cf7_mailjet_form_mail_modes'] ) && is_array( $_POST['cideapps_cf7_mailjet_form_mail_modes'] ) ) {
+		$form_mail_modes = array();
+		$allowed_modes   = array( 'cf7_mail', 'mailjet_only' );
+		foreach ( $_POST['cideapps_cf7_mailjet_form_mail_modes'] as $form_id => $mode ) {
+			$form_id = (int) $form_id;
+			$mode    = sanitize_text_field( wp_unslash( $mode ) );
+			if ( $form_id > 0 && in_array( $mode, $allowed_modes, true ) ) {
+				$form_mail_modes[ $form_id ] = $mode;
+			}
+		}
+		update_option( 'cideapps_cf7_mailjet_form_mail_modes', $form_mail_modes );
+	}
 	if ( isset( $_POST['cideapps_cf7_mailjet_email_field'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_email_field', sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_email_field'] ) ) );
 	}
@@ -182,6 +194,10 @@ $enable_contact_list     = ( $enable_contact_list_raw === 1 || $enable_contact_l
 $list_id                 = get_option( 'cideapps_cf7_mailjet_list_id', 0 );
 $on_existing_contact     = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
 $enabled_form_ids        = get_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
+$form_mail_modes         = get_option( 'cideapps_cf7_mailjet_form_mail_modes', array() );
+if ( ! is_array( $form_mail_modes ) ) {
+	$form_mail_modes = array();
+}
 $email_field             = get_option( 'cideapps_cf7_mailjet_email_field', 'your-email' );
 $name_field              = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
 $phone_field             = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
@@ -332,10 +348,31 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 					<td>
 						<?php if ( ! empty( $cf7_forms ) ) : ?>
 							<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
-								<label style="display:block; margin-bottom:5px;">
-									<input type="checkbox" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( $form_id ); ?>" <?php checked( in_array( $form_id, $enabled_form_ids, true ) ); ?> />
-									<?php echo esc_html( $form_title ); ?> (ID: <?php echo esc_html( $form_id ); ?>)
-								</label>
+								<?php
+								$form_id_int   = (int) $form_id;
+								$current_mode  = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
+								$is_enabled    = in_array( $form_id_int, array_map( 'intval', (array) $enabled_form_ids ), true );
+								?>
+								<div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #dcdcde;">
+									<label style="display:block; margin-bottom: 6px;">
+										<input type="checkbox" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( $form_id_int ); ?>" <?php checked( $is_enabled ); ?> />
+										<strong><?php echo esc_html( $form_title ); ?></strong> (ID: <?php echo esc_html( $form_id_int ); ?>)
+									</label>
+									<label for="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" style="display:block; margin-left: 24px;">
+										<?php esc_html_e( 'Modo de envío:', 'cideapps-cf7-mailjet' ); ?>
+										<select id="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" style="margin-left: 6px;">
+											<option value="cf7_mail" <?php selected( $current_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'CF7 + Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
+											<option value="mailjet_only" <?php selected( $current_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Solo Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
+										</select>
+									</label>
+									<p class="description" style="margin: 6px 0 0 24px;">
+										<strong><?php esc_html_e( 'CF7 + Mailjet:', 'cideapps-cf7-mailjet' ); ?></strong>
+										<?php esc_html_e( 'Contact Form 7 envía su correo nativo y después se ejecuta Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+										<br />
+										<strong><?php esc_html_e( 'Solo Mailjet:', 'cideapps-cf7-mailjet' ); ?></strong>
+										<?php esc_html_e( 'Contact Form 7 omite su correo nativo y el plugin procesa Mailjet vía API. Recomendado para VPS con SMTP bloqueado.', 'cideapps-cf7-mailjet' ); ?>
+									</p>
+								</div>
 							<?php endforeach; ?>
 						<?php else : ?>
 							<p><?php esc_html_e( 'No se encontraron formularios de Contact Form 7.', 'cideapps-cf7-mailjet' ); ?></p>
