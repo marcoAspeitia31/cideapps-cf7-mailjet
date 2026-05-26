@@ -1,66 +1,112 @@
 (function( $ ) {
 	'use strict';
 
-	/**
-	 * Handle CF7 form submission - disable button and show loader
-	 */
-	$( document ).ready( function() {
-		// Listen for all CF7 form submission events
-		$( document ).on( 'wpcf7submit', 'form.wpcf7-form', function( event ) {
-			var $form = $( this );
-			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
-			var $loader = $form.find( '.cideapps-cf7-loader' );
+	var SUBMIT_SELECTOR = '.wpcf7-form input[type="submit"], .wpcf7-form button[type="submit"], .wpcf7-form .wpcf7-submit';
 
-			// Disable submit button
+	/**
+	 * Find the CF7 form element from a DOM event.
+	 *
+	 * @param {Event} event DOM event.
+	 * @return {HTMLElement|null}
+	 */
+	function getFormFromEvent( event ) {
+		if ( event.target && event.target.closest ) {
+			var fromTarget = event.target.closest( 'form.wpcf7-form' );
+			if ( fromTarget ) {
+				return fromTarget;
+			}
+		}
+
+		if ( event.detail && event.detail.unitTag ) {
+			var byUnit = document.querySelector( '#' + event.detail.unitTag + ' form.wpcf7-form' );
+			if ( byUnit ) {
+				return byUnit;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Enable/disable submit UI and loader for a CF7 form.
+	 *
+	 * @param {HTMLElement} form CF7 form element.
+	 * @param {boolean}     isLoading Whether submission is in progress.
+	 */
+	function setFormLoadingState( form, isLoading ) {
+		if ( ! form ) {
+			return;
+		}
+
+		var $form = $( form );
+		var $submitButton = $form.find( 'input[type="submit"], button[type="submit"], .wpcf7-submit' );
+		var $loader = $form.find( '.cideapps-cf7-loader' );
+
+		if ( isLoading ) {
 			$submitButton.prop( 'disabled', true ).addClass( 'cideapps-cf7-submitting' );
 
-			// Show loader if it exists, otherwise create it
 			if ( $loader.length === 0 ) {
-				$loader = $( '<span class="cideapps-cf7-loader"></span>' );
-				$submitButton.after( $loader );
+				$loader = $( '<span class="cideapps-cf7-loader" aria-hidden="true"></span>' );
+				$submitButton.first().after( $loader );
 			}
-			$loader.show();
+
+			$loader.removeClass( 'hidden' ).show();
+			return;
+		}
+
+		$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
+		$loader.hide().addClass( 'hidden' );
+	}
+
+	/**
+	 * Bind CF7 front-end UX (loader + disabled submit).
+	 */
+	function initCf7MailjetPublicUi() {
+		// Immediate feedback on click (before AJAX / reCAPTCHA).
+		$( document ).on( 'click', SUBMIT_SELECTOR, function() {
+			var form = this.closest( 'form.wpcf7-form' );
+			if ( form && ! form.classList.contains( 'submitting' ) ) {
+				setFormLoadingState( form, true );
+			}
 		} );
 
-		// Re-enable button and hide loader on successful submission
-		$( document ).on( 'wpcf7mailsent', 'form.wpcf7-form', function( event ) {
-			var $form = $( this );
-			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
-			var $loader = $form.find( '.cideapps-cf7-loader' );
-
-			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
-			$loader.hide();
+		// CF7 5.x: fires when submission starts.
+		document.addEventListener( 'wpcf7submitting', function( event ) {
+			setFormLoadingState( getFormFromEvent( event ), true );
 		} );
 
-		// Re-enable button and hide loader on validation error
-		$( document ).on( 'wpcf7invalid', 'form.wpcf7-form', function( event ) {
-			var $form = $( this );
-			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
-			var $loader = $form.find( '.cideapps-cf7-loader' );
+		// Legacy + CF7 5.x terminal statuses.
+		var endEvents = [
+			'wpcf7sent',
+			'wpcf7failed',
+			'wpcf7invalid',
+			'wpcf7spam',
+			'wpcf7unaccepted',
+			'wpcf7aborted',
+			'wpcf7mailsent',
+			'wpcf7mailfailed'
+		];
 
-			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
-			$loader.hide();
+		endEvents.forEach( function( eventName ) {
+			document.addEventListener( eventName, function( event ) {
+				setFormLoadingState( getFormFromEvent( event ), false );
+			} );
 		} );
 
-		// Re-enable button and hide loader on spam detection
-		$( document ).on( 'wpcf7spam', 'form.wpcf7-form', function( event ) {
-			var $form = $( this );
-			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
-			var $loader = $form.find( '.cideapps-cf7-loader' );
+		// CF7 fires wpcf7submit when the request completes (do not use it to start loading).
+		document.addEventListener( 'wpcf7submit', function( event ) {
+			var form = getFormFromEvent( event );
+			if ( ! form || ! event.detail ) {
+				return;
+			}
 
-			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
-			$loader.hide();
+			var status = event.detail.status || '';
+			if ( status !== 'submitting' && status !== 'validating' ) {
+				setFormLoadingState( form, false );
+			}
 		} );
+	}
 
-		// Re-enable button and hide loader on mail failed
-		$( document ).on( 'wpcf7mailfailed', 'form.wpcf7-form', function( event ) {
-			var $form = $( this );
-			var $submitButton = $form.find( 'input[type="submit"], button[type="submit"]' );
-			var $loader = $form.find( '.cideapps-cf7-loader' );
-
-			$submitButton.prop( 'disabled', false ).removeClass( 'cideapps-cf7-submitting' );
-			$loader.hide();
-		} );
-	} );
+	$( document ).ready( initCf7MailjetPublicUi );
 
 })( jQuery );

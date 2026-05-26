@@ -284,12 +284,16 @@ class Cideapps_Cf7_Mailjet_API {
 			$error_data = $response->get_error_data();
 			$status     = isset( $error_data['status'] ) ? $error_data['status'] : 0;
 			
-			// 409 Conflict means contact is already in list - treat as success
-			if ( $status === 409 ) {
+			// 409 Conflict (or 400 duplicate) means contact is already in list - treat as success.
+			if ( 409 === $status ) {
 				return array( 'success' => true, 'message' => 'Contact already in list' );
 			}
-			
-			// For other errors (400, 401, 403, etc.), return the error
+
+			if ( 400 === $status && false !== stripos( $response->get_error_message(), 'duplicate' ) ) {
+				return array( 'success' => true, 'message' => 'Contact already in list' );
+			}
+
+			// For other errors (401, 403, etc.), return the error.
 			return $response;
 		}
 

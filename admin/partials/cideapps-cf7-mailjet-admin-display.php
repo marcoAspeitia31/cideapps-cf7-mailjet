@@ -17,8 +17,12 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-// Test list connection (must be outside main form handler)
-if ( isset( $_POST['cideapps_cf7_mailjet_test_list'] ) && $_POST['cideapps_cf7_mailjet_test_list'] === '1' ) {
+// Test list connection — only when the dedicated test form is submitted (not on "Guardar Configuración").
+if (
+	isset( $_POST['cideapps_cf7_mailjet_test_list'] )
+	&& $_POST['cideapps_cf7_mailjet_test_list'] === '1'
+	&& ! isset( $_POST['cideapps_cf7_mailjet_settings_submit'] )
+) {
 	if ( check_admin_referer( 'cideapps_cf7_mailjet_test_list' ) ) {
 		$test_email = isset( $_POST['cideapps_cf7_mailjet_test_email'] ) ? sanitize_email( $_POST['cideapps_cf7_mailjet_test_email'] ) : '';
 		if ( empty( $test_email ) ) {
@@ -322,19 +326,15 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 				</tr>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Probar Conexión', 'cideapps-cf7-mailjet' ); ?></th>
-					<td>
-						<form method="post" action="" style="margin-top: 10px;">
-							<?php wp_nonce_field( 'cideapps_cf7_mailjet_test_list' ); ?>
-							<input type="hidden" name="cideapps_cf7_mailjet_test_list" value="1" />
-							<p>
-								<label for="cideapps_cf7_mailjet_test_email"><?php esc_html_e( 'Email de prueba:', 'cideapps-cf7-mailjet' ); ?></label>
-								<input type="email" id="cideapps_cf7_mailjet_test_email" name="cideapps_cf7_mailjet_test_email" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>" class="regular-text" style="margin-left: 5px;" />
-							</p>
-							<p>
-								<button type="submit" class="button button-secondary"><?php esc_html_e( 'Probar conexión y agregar contacto de prueba', 'cideapps-cf7-mailjet' ); ?></button>
-							</p>
-							<p class="description"><?php esc_html_e( 'Prueba la conexión con Mailjet y agrega un contacto de prueba a la lista configurada. Se usará tu email actual si no especificas uno.', 'cideapps-cf7-mailjet' ); ?></p>
-						</form>
+					<td style="margin-top: 10px;">
+						<p>
+							<label for="cideapps_cf7_mailjet_test_email"><?php esc_html_e( 'Email de prueba:', 'cideapps-cf7-mailjet' ); ?></label>
+							<input type="email" id="cideapps_cf7_mailjet_test_email" form="cideapps-cf7-mailjet-test-form" name="cideapps_cf7_mailjet_test_email" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>" class="regular-text" style="margin-left: 5px;" />
+						</p>
+						<p>
+							<button type="submit" form="cideapps-cf7-mailjet-test-form" class="button button-secondary"><?php esc_html_e( 'Probar conexión y agregar contacto de prueba', 'cideapps-cf7-mailjet' ); ?></button>
+						</p>
+						<p class="description"><?php esc_html_e( 'Prueba la conexión con Mailjet y agrega un contacto de prueba a la lista configurada. Se usará tu email actual si no especificas uno.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -462,6 +462,11 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 		</div>
 
 		<?php submit_button( __( 'Guardar Configuración', 'cideapps-cf7-mailjet' ), 'primary', 'cideapps_cf7_mailjet_settings_submit' ); ?>
+	</form>
+
+	<form method="post" action="" id="cideapps-cf7-mailjet-test-form" style="display: none;" aria-hidden="true">
+		<?php wp_nonce_field( 'cideapps_cf7_mailjet_test_list' ); ?>
+		<input type="hidden" name="cideapps_cf7_mailjet_test_list" value="1" />
 	</form>
 </div>
 
