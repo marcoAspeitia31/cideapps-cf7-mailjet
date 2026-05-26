@@ -24,12 +24,19 @@
 	100% { transform: rotate(360deg); }
 }
 
-/* Disabled button styles */
+/* Submitting state — visual lock without HTML disabled (set on wpcf7submitting). */
 input[type="submit"].cideapps-cf7-submitting,
-button[type="submit"].cideapps-cf7-submitting {
+button[type="submit"].cideapps-cf7-submitting,
+.wpcf7-submit.cideapps-cf7-submitting {
 	opacity: 0.6;
 	cursor: not-allowed;
 	position: relative;
+}
+
+.wpcf7-form.cideapps-cf7-form-submitting .wpcf7-submit:not(:disabled),
+.wpcf7-form.cideapps-cf7-form-submitting input[type="submit"]:not(:disabled),
+.wpcf7-form.cideapps-cf7-form-submitting button[type="submit"]:not(:disabled) {
+	pointer-events: none;
 }
 
 /* Alternative loader with text */

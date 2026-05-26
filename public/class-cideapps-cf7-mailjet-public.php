@@ -96,7 +96,13 @@ class Cideapps_Cf7_Mailjet_Public {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cideapps-cf7-mailjet-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script(
+			$this->plugin_name,
+			plugin_dir_url( __FILE__ ) . 'js/cideapps-cf7-mailjet-public.js',
+			array( 'jquery', 'contact-form-7' ),
+			$this->version,
+			array( 'in_footer' => true )
+		);
 
 	}
 
