@@ -109,7 +109,7 @@ wpcf7_mail_sent   // handle_form_submission → process_submission()
 
 **Limitación en `mailjet_only`:** la pestaña Mail de CF7 no notifica al administrador.
 
-**Mejora futura:** enviar notificación administrativa con plantilla Mailjet (Send API).
+**Notificación administrativa:** implementada en modo `mailjet_only` (plantilla Mailjet o HTML por defecto; Reply-To = email del lead desde v1.3.1).
 
 ### Flujo (`process_submission`):
 
@@ -149,7 +149,9 @@ Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
 | `remote_ip` | IP enmascarada (último octeto / último grupo IPv6) |
 | `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` | Query string de la URL de origen |
 
-### Etapa 2 (implementado — validación manual en `PRUEBAS-MANUALES.md`)
+### Etapa 2 (cerrada — validación en `PRUEBAS-MANUALES.md`)
+
+Mejoras opcionales posteriores: `ACTIVIDADES-FUTURAS.md`.
 
 - UI en admin para mapear **campos CF7 adicionales** a claves Mailjet arbitrarias
   - Opción: `cideapps_cf7_mailjet_dynamic_mappings`
@@ -172,7 +174,8 @@ Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
 
 ---
 
-Ver checklist de pruebas en `PRUEBAS-MANUALES.md`.
+- Checklist de pruebas (completado): `PRUEBAS-MANUALES.md`
+- Backlog y mejoras opcionales: `ACTIVIDADES-FUTURAS.md`
 
 ---
 

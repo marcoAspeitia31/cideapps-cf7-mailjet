@@ -3,7 +3,8 @@
 Documento de validación manual del plugin. Incluye pruebas del plan original y las realizadas durante el desarrollo (modos de envío, notificación al negocio, variables Mailjet, metadata, mapeos dinámicos y adjuntos).
 
 **Versión plugin probada:** 1.3.1  
-**Última actualización:** mayo 2026
+**Última actualización:** mayo 2026  
+**Estado:** Etapa de desarrollo y QA manual **completada** (staging + producción). Actividades opcionales: ver `ACTIVIDADES-FUTURAS.md`.
 
 ---
 
@@ -34,6 +35,9 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Modo `cf7_mail`, formulario deshabilitado, idempotencia, rate limit | OK | Validado en staging |
 | Reply-To notificación (template) | OK (v1.3.1) | Reply-To = email del lead |
 | form_id, UTM, HTML file links, sin correo CF7 en mailjet_only | OK | Validado en staging |
+| Mail-tags especiales (`[_remote_ip]`, etc.) | OK | Mapeo dinámico + plantilla Mailjet |
+| Producción IONOS VPS (SMTP 25 bloqueado) | OK | Solo **Solo Mailjet**; sin correo CF7 nativo |
+| Producción cPanel | OK | **CF7 + Mailjet** y **Solo Mailjet** |
 
 ---
 
@@ -172,12 +176,12 @@ Hora: {{var:submit_time}}
 
 **Nota:** Si ya tienes activo **Metadata CF7 en Mailjet**, parte de esto se solapa (`source_url` ≈ `[_url]`, `user_agent` ≈ `[_user_agent]`, `remote_ip` ≈ IP enmascarada vs `[_remote_ip]` completa). Usa metadata **o** mail-tags mapeados, no dupliques lo mismo con nombres distintos salvo que lo necesites en la plantilla.
 
-**Checklist mail-tags (pendiente de validar cuando los configures):**
+**Checklist mail-tags:**
 
-- [ ] `[_remote_ip]` → ej. `visitor_ip` → `{{var:visitor_ip}}`
-- [ ] `[_user_agent]` → ej. `browser` → `{{var:browser}}`
-- [ ] `[_url]` → ej. `landing_url` → `{{var:landing_url}}`
-- [ ] `[_date]` / `[_time]` → ej. `submit_date` / `submit_time`
+- [x] `[_remote_ip]` → ej. `visitor_ip` → `{{var:visitor_ip}}`
+- [x] `[_user_agent]` → ej. `browser` → `{{var:browser}}`
+- [x] `[_url]` → ej. `landing_url` → `{{var:landing_url}}`
+- [x] `[_date]` / `[_time]` → ej. `submit_date` / `submit_time`
 
 ---
 
@@ -233,13 +237,24 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 
 ---
 
-## 9. Producción (IONOS / VPS)
+## 9. Producción (IONOS / VPS / cPanel)
 
-- [ ] HTTPS saliente a `api.mailjet.com` disponible
-- [ ] Formulario en producción con **Solo Mailjet**
-- [ ] Notificación al negocio recibida en inbox real (revisar spam)
-- [ ] Panel Mailjet: envíos en *sent* (no *blocked* por variables de plantilla)
-- [ ] Adjuntos: URLs con dominio público (no solo `.local`)
+### VPS IONOS (puerto SMTP 25 bloqueado)
+
+Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo fallaría sin relay. Usar **Solo Mailjet**.
+
+- [x] HTTPS saliente a `api.mailjet.com` disponible
+- [x] Formulario en producción con **Solo Mailjet**
+- [x] Mensaje de éxito en front sin `mail_sent_ng`
+- [x] Notificación al negocio recibida en inbox real
+- [x] Autorespuesta y lista Mailjet operativas
+- [x] Panel Mailjet: envíos en *sent* (no *blocked* por variables de plantilla)
+- [x] Adjuntos: URLs con dominio público (no solo `.local`)
+
+### cPanel (SMTP / `wp_mail` disponible)
+
+- [x] Modo **CF7 + Mailjet**: correo CF7 + acciones Mailjet
+- [x] Modo **Solo Mailjet**: mismo comportamiento que en staging
 
 ---
 
