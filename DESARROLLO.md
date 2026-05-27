@@ -149,7 +149,7 @@ Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
 | `remote_ip` | IP enmascarada (último octeto / último grupo IPv6) |
 | `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` | Query string de la URL de origen |
 
-### Etapa 2 (implementado parcialmente)
+### Etapa 2 (implementado — validación manual en `PRUEBAS-MANUALES.md`)
 
 - UI en admin para mapear **campos CF7 adicionales** a claves Mailjet arbitrarias
   - Opción: `cideapps_cf7_mailjet_dynamic_mappings`
