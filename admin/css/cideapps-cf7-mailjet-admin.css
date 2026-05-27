@@ -2,3 +2,20 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+.cideapps-cf7-mappings__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 10px;
+}
+
+.cideapps-cf7-mappings__arrow {
+	color: #646970;
+}
+
+.cideapps-cf7-mappings__source,
+.cideapps-cf7-mappings__target {
+	max-width: 320px;
+	width: 100%;
+}

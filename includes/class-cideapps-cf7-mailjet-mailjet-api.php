@@ -310,9 +310,10 @@ class Cideapps_Cf7_Mailjet_API {
 	 * @param    array     $variables     Template variables (name, email, phone, service)
 	 * @param    string    $from_email    From email address
 	 * @param    string    $from_name     From name
+	 * @param    string    $reply_to      Reply-To email (optional; defaults to from_email)
 	 * @return   array|WP_Error    Response array or WP_Error on failure
 	 */
-	public function send_email( $to_email, $template_id, $variables = array(), $from_email = '', $from_name = '' ) {
+	public function send_email( $to_email, $template_id, $variables = array(), $from_email = '', $from_name = '', $reply_to = '' ) {
 		if ( empty( $this->public_key ) || empty( $this->private_key ) ) {
 			return new WP_Error( 'no_credentials', 'Mailjet API credentials are not configured.' );
 		}
@@ -337,6 +338,11 @@ class Cideapps_Cf7_Mailjet_API {
 			return new WP_Error( 'invalid_from_email', 'Invalid from email address.' );
 		}
 
+		$reply_to_email = $from_email;
+		if ( ! empty( $reply_to ) && is_email( $reply_to ) ) {
+			$reply_to_email = $reply_to;
+		}
+
 		// Prepare email data
 		$email_data = array(
 			'Messages' => array(
@@ -351,11 +357,11 @@ class Cideapps_Cf7_Mailjet_API {
 						),
 					),
 					'ReplyTo'  => array(
-						'Email' => sanitize_email( $from_email ),
+						'Email' => sanitize_email( $reply_to_email ),
 					),
 					'TemplateID'       => (int) $template_id,
 					'TemplateLanguage' => true,
-					'Variables'        => array_map( 'sanitize_text_field', $variables ),
+					'Variables'        => $this->sanitize_template_variables( $variables ),
 				),
 			),
 		);
@@ -364,6 +370,97 @@ class Cideapps_Cf7_Mailjet_API {
 		$response = $this->make_request( $endpoint, 'POST', $email_data );
 
 		return $response;
+	}
+
+	/**
+	 * Send transactional email using HTML body (without template ID).
+	 *
+	 * @since    1.1.0
+	 * @param    string $to_email   Recipient email.
+	 * @param    string $subject    Email subject.
+	 * @param    string $html_part  Email HTML content.
+	 * @param    string $from_email From email address.
+	 * @param    string $from_name  From name.
+	 * @param    string $reply_to   Reply-to email (optional).
+	 * @return   array|WP_Error
+	 */
+	public function send_html_email( $to_email, $subject, $html_part, $from_email = '', $from_name = '', $reply_to = '' ) {
+		if ( empty( $this->public_key ) || empty( $this->private_key ) ) {
+			return new WP_Error( 'no_credentials', 'Mailjet API credentials are not configured.' );
+		}
+
+		if ( empty( $to_email ) || ! is_email( $to_email ) ) {
+			return new WP_Error( 'invalid_email', 'Invalid recipient email address.' );
+		}
+
+		if ( empty( $subject ) ) {
+			return new WP_Error( 'invalid_subject', 'Email subject is required.' );
+		}
+
+		if ( empty( $html_part ) ) {
+			return new WP_Error( 'invalid_html_part', 'HTML body is required.' );
+		}
+
+		if ( empty( $from_email ) ) {
+			$from_email = get_option( 'cideapps_cf7_mailjet_from_email', '' );
+		}
+		if ( empty( $from_name ) ) {
+			$from_name = get_option( 'cideapps_cf7_mailjet_from_name', '' );
+		}
+
+		if ( empty( $from_email ) || ! is_email( $from_email ) ) {
+			return new WP_Error( 'invalid_from_email', 'Invalid from email address.' );
+		}
+
+		$message = array(
+			'From'     => array(
+				'Email' => sanitize_email( $from_email ),
+				'Name'  => sanitize_text_field( $from_name ),
+			),
+			'To'       => array(
+				array(
+					'Email' => sanitize_email( $to_email ),
+				),
+			),
+			'Subject'  => sanitize_text_field( $subject ),
+			'HTMLPart' => wp_kses_post( $html_part ),
+			'TextPart' => sanitize_textarea_field( wp_strip_all_tags( $html_part ) ),
+		);
+
+		if ( ! empty( $reply_to ) && is_email( $reply_to ) ) {
+			$message['ReplyTo'] = array(
+				'Email' => sanitize_email( $reply_to ),
+			);
+		}
+
+		$email_data = array(
+			'Messages' => array( $message ),
+		);
+
+		$endpoint = $this->api_base_url . 'send';
+		$response = $this->make_request( $endpoint, 'POST', $email_data );
+
+		return $response;
+	}
+
+	/**
+	 * Sanitize template variables (preserve line breaks in message).
+	 *
+	 * @since 1.2.0
+	 * @param array $variables Template variables.
+	 * @return array
+	 */
+	private function sanitize_template_variables( $variables ) {
+		if ( ! is_array( $variables ) ) {
+			return array();
+		}
+
+		if ( class_exists( 'Cideapps_Cf7_Mailjet_Submission_Data' ) ) {
+			$builder = new Cideapps_Cf7_Mailjet_Submission_Data();
+			return $builder->sanitize_mailjet_variables( $variables );
+		}
+
+		return array_map( 'sanitize_text_field', $variables );
 	}
 
 	/**

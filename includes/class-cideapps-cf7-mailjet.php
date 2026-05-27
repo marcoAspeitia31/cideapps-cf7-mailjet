@@ -138,6 +138,11 @@ class Cideapps_Cf7_Mailjet {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-logger.php';
 
 		/**
+		 * The class responsible for extracting CF7 submission data for Mailjet.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-submission-data.php';
+
+		/**
 		 * The class responsible for handling CF7 submissions.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-cf7-handler.php';

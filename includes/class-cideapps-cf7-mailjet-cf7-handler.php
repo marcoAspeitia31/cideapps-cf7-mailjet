@@ -73,14 +73,23 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	private $logger;
 
 	/**
+	 * Submission data builder.
+	 *
+	 * @since 1.2.0
+	 * @var Cideapps_Cf7_Mailjet_Submission_Data
+	 */
+	private $submission_data;
+
+	/**
 	 * Initialize the class
 	 *
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$this->mailjet_api = new Cideapps_Cf7_Mailjet_API();
-		$this->rate_limit  = new Cideapps_Cf7_Mailjet_Rate_Limit();
-		$this->logger      = new Cideapps_Cf7_Mailjet_Logger();
+		$this->mailjet_api     = new Cideapps_Cf7_Mailjet_API();
+		$this->rate_limit      = new Cideapps_Cf7_Mailjet_Rate_Limit();
+		$this->logger          = new Cideapps_Cf7_Mailjet_Logger();
+		$this->submission_data = new Cideapps_Cf7_Mailjet_Submission_Data();
 	}
 
 	/**
@@ -151,51 +160,15 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			return;
 		}
 
-		$email_field   = get_option( 'cideapps_cf7_mailjet_email_field', 'your-email' );
-		$name_field    = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
-		$phone_field   = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
-		$service_field = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
+		$core_fields = $this->submission_data->extract_core_fields( $contact_form, $posted_data, $this );
+		$email       = $core_fields['email'];
+		$name        = $core_fields['name'];
+		$phone       = $core_fields['phone'];
+		$service     = $core_fields['service'];
+		$message     = $core_fields['message'];
 
-		$email = isset( $posted_data[ $email_field ] ) ? sanitize_email( $posted_data[ $email_field ] ) : '';
-		$name  = isset( $posted_data[ $name_field ] ) ? sanitize_text_field( $posted_data[ $name_field ] ) : '';
-		$phone = isset( $posted_data[ $phone_field ] ) ? sanitize_text_field( $posted_data[ $phone_field ] ) : '';
-
-		$service            = '';
-		$service_send_label = get_option( 'cideapps_cf7_mailjet_service_send_label', false );
-		$service_raw        = '';
-
-		if ( isset( $posted_data[ $service_field ] ) ) {
-			if ( is_array( $posted_data[ $service_field ] ) ) {
-				$service_items     = array();
-				$service_raw_items = array();
-
-				foreach ( $posted_data[ $service_field ] as $item ) {
-					$item_sanitized = sanitize_text_field( $item );
-					if ( ! empty( $item_sanitized ) ) {
-						$service_raw_items[] = $item_sanitized;
-
-						if ( $service_send_label ) {
-							$service_items[] = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $item_sanitized );
-						} else {
-							$service_items[] = $item_sanitized;
-						}
-					}
-				}
-
-				$service     = implode( ', ', $service_items );
-				$service_raw = implode( ', ', $service_raw_items );
-			} else {
-				$service     = sanitize_text_field( $posted_data[ $service_field ] );
-				$service_raw = $service;
-
-				if ( $service_send_label && ! empty( $service ) ) {
-					$service = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $service );
-				}
-			}
-		}
-
-		if ( ! empty( $service_raw ) && $service !== $service_raw ) {
-			$this->logger->info( "Service field resolved: value(s) '{$service_raw}' -> label(s) '{$service}'" );
+		if ( ! empty( $core_fields['service_raw'] ) && $service !== $core_fields['service_raw'] ) {
+			$this->logger->info( "Service field resolved: value(s) '{$core_fields['service_raw']}' -> label(s) '{$service}'" );
 		}
 
 		if ( empty( $email ) || ! is_email( $email ) ) {
@@ -228,20 +201,19 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 
 		$this->logger->info( "Processing form submission for form ID {$form_id}, email: {$email}" );
 
-		$contact_properties = array();
-		if ( ! empty( $name ) ) {
-			$contact_properties['name'] = $name;
-		}
-		if ( ! empty( $phone ) ) {
-			$contact_properties['phone'] = $phone;
-		}
-		if ( ! empty( $service ) ) {
-			$contact_properties['service'] = $service;
+		$contact_properties            = $this->submission_data->build_contact_properties( $core_fields );
+		$template_variables            = $this->submission_data->build_template_variables( $core_fields, $form_id, $submission );
+		$business_notification_variables = $template_variables;
+
+		// 1) Business notification first (only for mailjet_only mode).
+		if ( self::DELIVERY_MODE_MAILJET_ONLY === $mode ) {
+			$this->send_business_notification( $contact_form, $posted_data, $email, $business_notification_variables, $submission );
 		}
 
 		$enable_contact_list_raw = get_option( 'cideapps_cf7_mailjet_enable_contact_list', 0 );
 		$enable_contact_list     = ( $enable_contact_list_raw === 1 || $enable_contact_list_raw === '1' || $enable_contact_list_raw === true );
 
+		// 2) Add lead to contact list.
 		if ( $enable_contact_list ) {
 			$list_id     = (int) get_option( 'cideapps_cf7_mailjet_list_id', 0 );
 			$on_existing = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
@@ -268,6 +240,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			$this->logger->info( 'Contact list is disabled (enable_contact_list value: ' . var_export( $enable_contact_list_raw, true ) . ')' );
 		}
 
+		// 3) Send customer autoreply.
 		$enable_autoreply = get_option( 'cideapps_cf7_mailjet_enable_autoreply', false );
 		if ( $enable_autoreply ) {
 			$template_id = (int) get_option( 'cideapps_cf7_mailjet_template_id', 0 );
@@ -275,14 +248,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 				$from_email = get_option( 'cideapps_cf7_mailjet_from_email', '' );
 				$from_name  = get_option( 'cideapps_cf7_mailjet_from_name', '' );
 
-				$template_variables = array(
-					'name'    => $name,
-					'email'   => $email,
-					'phone'   => $phone,
-					'service' => $service,
-				);
-
-				$email_result = $this->mailjet_api->send_email( $email, $template_id, $template_variables, $from_email, $from_name );
+				$email_result = $this->mailjet_api->send_email( $email, $template_id, $business_notification_variables, $from_email, $from_name );
 				if ( is_wp_error( $email_result ) ) {
 					$this->logger->error( 'Error sending autoreply email: ' . $email_result->get_error_message() );
 				} else {
@@ -296,6 +262,115 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 		if ( self::DELIVERY_MODE_MAILJET_ONLY === $mode ) {
 			$this->logger->info( "Mailjet-only path completed for form ID {$form_id}." );
 		}
+	}
+
+	/**
+	 * Send owner/business notification email when form runs in mailjet_only mode.
+	 *
+	 * @since 1.1.0
+	 * @param WPCF7_ContactForm $contact_form CF7 contact form object.
+	 * @param array             $posted_data  Posted form data.
+	 * @param string            $lead_email   Lead email.
+	 * @param array             $variables    Common template variables.
+	 * @return void
+	 */
+	private function send_business_notification( $contact_form, $posted_data, $lead_email, $variables, $submission = null ) {
+		$enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
+		$enabled     = ( $enabled_raw === 1 || $enabled_raw === '1' || $enabled_raw === true );
+		if ( ! $enabled ) {
+			$this->logger->info( 'Business notification disabled for mailjet_only mode.' );
+			return;
+		}
+
+		$to_email = sanitize_email( get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' ) );
+		if ( empty( $to_email ) || ! is_email( $to_email ) ) {
+			$this->logger->warning( 'Business notification enabled but destination email is missing or invalid.' );
+			return;
+		}
+
+		$mode = get_option( 'cideapps_cf7_mailjet_owner_notify_mode', 'template' );
+		if ( ! in_array( $mode, array( 'template', 'html_default' ), true ) ) {
+			$mode = 'template';
+		}
+
+		$from_email = get_option( 'cideapps_cf7_mailjet_from_email', '' );
+		$from_name  = get_option( 'cideapps_cf7_mailjet_from_name', '' );
+
+		if ( 'template' === $mode ) {
+			$template_id = (int) get_option( 'cideapps_cf7_mailjet_owner_notify_template_id', 0 );
+			if ( empty( $template_id ) ) {
+				$this->logger->warning( 'Business notification mode is template but Template ID is not configured.' );
+				return;
+			}
+
+			$result = $this->mailjet_api->send_email( $to_email, $template_id, $variables, $from_email, $from_name, $lead_email );
+		} else {
+			$subject = get_option( 'cideapps_cf7_mailjet_owner_notify_subject', __( 'Nuevo lead desde formulario web', 'cideapps-cf7-mailjet' ) );
+			$html    = $this->build_default_business_notification_html( $contact_form, $posted_data, $submission );
+
+			$result = $this->mailjet_api->send_html_email( $to_email, $subject, $html, $from_email, $from_name, $lead_email );
+		}
+
+		if ( is_wp_error( $result ) ) {
+			$this->logger->error( 'Error sending business notification email: ' . $result->get_error_message() );
+		} else {
+			$this->logger->info( "Business notification email sent to: {$to_email}" );
+		}
+	}
+
+	/**
+	 * Build default HTML body for business notification email.
+	 *
+	 * @since 1.1.0
+	 * @param WPCF7_ContactForm $contact_form CF7 contact form object.
+	 * @param array             $posted_data  Posted form data.
+	 * @return string
+	 */
+	private function build_default_business_notification_html( $contact_form, $posted_data, $submission = null ) {
+		$form_title = method_exists( $contact_form, 'title' ) ? $contact_form->title() : '';
+
+		$attachment_urls_by_field = array();
+		if ( $submission instanceof WPCF7_Submission && $this->submission_data->is_attachment_urls_enabled() ) {
+			$attachment_urls_by_field = $this->submission_data->get_persisted_attachment_urls_by_field( $submission );
+		}
+
+		$rows = '';
+		foreach ( $posted_data as $field_name => $field_value ) {
+			if ( isset( $attachment_urls_by_field[ $field_name ] ) ) {
+				$links = array();
+				foreach ( $attachment_urls_by_field[ $field_name ] as $file_url ) {
+					$links[] = '<a href="' . esc_url( $file_url ) . '" target="_blank" rel="noopener noreferrer">' .
+						esc_html( wp_basename( $file_url ) ) .
+						'</a>';
+				}
+				$value = implode( '<br />', $links );
+			} elseif ( is_array( $field_value ) ) {
+				$value = esc_html( implode( ', ', array_map( 'sanitize_text_field', $field_value ) ) );
+			} else {
+				$value = esc_html( sanitize_text_field( $field_value ) );
+			}
+
+			if ( '' === trim( wp_strip_all_tags( (string) $value ) ) ) {
+				continue;
+			}
+
+			$rows .= '<tr><td style="padding:8px;border:1px solid #ddd;"><strong>' .
+				esc_html( $field_name ) .
+				'</strong></td><td style="padding:8px;border:1px solid #ddd;">' .
+				$value .
+				'</td></tr>';
+		}
+
+		$html  = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#222;">';
+		$html .= '<h2 style="margin:0 0 16px;">' . esc_html__( 'Nuevo lead recibido', 'cideapps-cf7-mailjet' ) . '</h2>';
+		if ( ! empty( $form_title ) ) {
+			$html .= '<p><strong>' . esc_html__( 'Formulario:', 'cideapps-cf7-mailjet' ) . '</strong> ' . esc_html( $form_title ) . '</p>';
+		}
+		$html .= '<table style="border-collapse:collapse;width:100%;max-width:720px;">';
+		$html .= '<tbody>' . $rows . '</tbody>';
+		$html .= '</table></div>';
+
+		return $html;
 	}
 
 	/**
@@ -382,7 +457,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	 * @param    string               $submitted_value Submitted value (e.g., 'apps-moviles')
 	 * @return   string    Label if found, original value if not found
 	 */
-	private function resolve_cf7_label_from_value( $contact_form, $field_name, $submitted_value ) {
+	public function resolve_cf7_label_from_value( $contact_form, $field_name, $submitted_value ) {
 		if ( empty( $submitted_value ) ) {
 			return '';
 		}

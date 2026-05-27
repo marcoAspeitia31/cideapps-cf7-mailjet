@@ -80,6 +80,9 @@ Agregar una página en:
 - name_field (default: your-name)
 - phone_field (default: your-phone)
 - service_field (default: service)
+- message_field (default: your-message)
+- enable_submission_metadata (bool, default: off) — metadata CF7 en variables Mailjet
+- dynamic_mappings (UI con filas repetibles, una por mapeo `origen -> variable_mailjet`)
 
 #### Seguridad
 - rate_limit_email_minutes (default: 10)
@@ -116,7 +119,50 @@ wpcf7_mail_sent   // handle_form_submission → process_submission()
 4. Validar email
 5. Idempotencia (transient 5 min: form_id + email hash + posted_data hash)
 6. Aplicar rate limit (email + IP)
-7. Ejecutar acciones Mailjet (lista + autorespuesta)
+7. Ejecutar acciones Mailjet:
+   - **mailjet_only:** (1) notificación negocio → (2) lista → (3) autorespuesta
+   - **cf7_mail:** lista + autorespuesta (correo CF7 ya enviado)
+
+### Variables Mailjet (`{{var:clave}}`)
+
+Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
+
+**Core (siempre):**
+
+| Clave | Origen |
+|-------|--------|
+| `name` | Campo mapeado `name_field` |
+| `email` | Campo mapeado `email_field` |
+| `phone` | Campo mapeado `phone_field` |
+| `service` | Campo mapeado `service_field` (opcional label) |
+| `message` | Campo mapeado `message_field` (textarea, conserva saltos de línea) |
+| `form_id` | ID del formulario CF7 |
+
+**Metadata CF7 (opt-in, `enable_submission_metadata`):**
+
+| Clave | Origen |
+|-------|--------|
+| `source_url` | `$submission->get_meta('url')` |
+| `source_page` | Título + permalink del post contenedor |
+| `submitted_at` | Fecha/hora del envío (formato WP) |
+| `user_agent` | Navegador del visitante |
+| `remote_ip` | IP enmascarada (último octeto / último grupo IPv6) |
+| `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` | Query string de la URL de origen |
+
+### Etapa 2 (implementado — validación manual en `PRUEBAS-MANUALES.md`)
+
+- UI en admin para mapear **campos CF7 adicionales** a claves Mailjet arbitrarias
+  - Opción: `cideapps_cf7_mailjet_dynamic_mappings`
+  - Formato: una línea por mapeo `origen:variable_mailjet`
+  - Ejemplos: `your-company:company`, `your-budget:budget`
+- Soporte de mail-tags especiales básicos:
+  - `[_remote_ip]`, `[_user_agent]`, `[_url]`, `[_date]`, `[_time]`
+  - Ejemplo: `[_remote_ip]:visitor_ip`
+- Adjuntos: URLs de archivos subidos (copia a `uploads/cideapps-cf7-mailjet/`, no binarios en API Mailjet)
+  - Opción: `cideapps_cf7_mailjet_enable_attachment_urls`
+  - Mapeo repetible: `cideapps_cf7_mailjet_attachment_mappings` (`campo_file:variable_mailjet`)
+  - Variable global: `attachments_all` (todas las URLs)
+  - Auto-mapeo si no hay filas: `{campo}_url`
 
 ### Logs (si `debug_logs` activo)
 
@@ -161,12 +207,7 @@ Usar Mailjet Send API v3.1:
 * To = email del usuario
 * Reply-To = From Email
 * TemplateID
-* Variables:
-
-  * name
-  * email
-  * phone
-  * service
+* Variables: ver tabla en sección **Variables Mailjet** (core + metadata opcional)
 
 NO usar el email del usuario como From.
 
