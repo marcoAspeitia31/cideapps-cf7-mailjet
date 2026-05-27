@@ -158,7 +158,11 @@ Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
 - Soporte de mail-tags especiales básicos:
   - `[_remote_ip]`, `[_user_agent]`, `[_url]`, `[_date]`, `[_time]`
   - Ejemplo: `[_remote_ip]:visitor_ip`
-- Adjuntos (pendiente): URLs de archivos subidos (no binarios en API Mailjet)
+- Adjuntos: URLs de archivos subidos (copia a `uploads/cideapps-cf7-mailjet/`, no binarios en API Mailjet)
+  - Opción: `cideapps_cf7_mailjet_enable_attachment_urls`
+  - Mapeo repetible: `cideapps_cf7_mailjet_attachment_mappings` (`campo_file:variable_mailjet`)
+  - Variable global: `attachments_all` (todas las URLs)
+  - Auto-mapeo si no hay filas: `{campo}_url`
 
 ### Logs (si `debug_logs` activo)
 

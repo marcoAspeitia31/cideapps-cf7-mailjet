@@ -207,7 +207,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 
 		// 1) Business notification first (only for mailjet_only mode).
 		if ( self::DELIVERY_MODE_MAILJET_ONLY === $mode ) {
-			$this->send_business_notification( $contact_form, $posted_data, $email, $business_notification_variables );
+			$this->send_business_notification( $contact_form, $posted_data, $email, $business_notification_variables, $submission );
 		}
 
 		$enable_contact_list_raw = get_option( 'cideapps_cf7_mailjet_enable_contact_list', 0 );
@@ -274,7 +274,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	 * @param array             $variables    Common template variables.
 	 * @return void
 	 */
-	private function send_business_notification( $contact_form, $posted_data, $lead_email, $variables ) {
+	private function send_business_notification( $contact_form, $posted_data, $lead_email, $variables, $submission = null ) {
 		$enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
 		$enabled     = ( $enabled_raw === 1 || $enabled_raw === '1' || $enabled_raw === true );
 		if ( ! $enabled ) {
@@ -306,7 +306,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			$result = $this->mailjet_api->send_email( $to_email, $template_id, $variables, $from_email, $from_name );
 		} else {
 			$subject = get_option( 'cideapps_cf7_mailjet_owner_notify_subject', __( 'Nuevo lead desde formulario web', 'cideapps-cf7-mailjet' ) );
-			$html    = $this->build_default_business_notification_html( $contact_form, $posted_data );
+			$html    = $this->build_default_business_notification_html( $contact_form, $posted_data, $submission );
 
 			$result = $this->mailjet_api->send_html_email( $to_email, $subject, $html, $from_email, $from_name, $lead_email );
 		}
@@ -326,25 +326,38 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	 * @param array             $posted_data  Posted form data.
 	 * @return string
 	 */
-	private function build_default_business_notification_html( $contact_form, $posted_data ) {
+	private function build_default_business_notification_html( $contact_form, $posted_data, $submission = null ) {
 		$form_title = method_exists( $contact_form, 'title' ) ? $contact_form->title() : '';
+
+		$attachment_urls_by_field = array();
+		if ( $submission instanceof WPCF7_Submission && $this->submission_data->is_attachment_urls_enabled() ) {
+			$attachment_urls_by_field = $this->submission_data->get_persisted_attachment_urls_by_field( $submission );
+		}
 
 		$rows = '';
 		foreach ( $posted_data as $field_name => $field_value ) {
-			if ( is_array( $field_value ) ) {
-				$value = implode( ', ', array_map( 'sanitize_text_field', $field_value ) );
+			if ( isset( $attachment_urls_by_field[ $field_name ] ) ) {
+				$links = array();
+				foreach ( $attachment_urls_by_field[ $field_name ] as $file_url ) {
+					$links[] = '<a href="' . esc_url( $file_url ) . '" target="_blank" rel="noopener noreferrer">' .
+						esc_html( wp_basename( $file_url ) ) .
+						'</a>';
+				}
+				$value = implode( '<br />', $links );
+			} elseif ( is_array( $field_value ) ) {
+				$value = esc_html( implode( ', ', array_map( 'sanitize_text_field', $field_value ) ) );
 			} else {
-				$value = sanitize_text_field( $field_value );
+				$value = esc_html( sanitize_text_field( $field_value ) );
 			}
 
-			if ( '' === trim( $value ) ) {
+			if ( '' === trim( wp_strip_all_tags( (string) $value ) ) ) {
 				continue;
 			}
 
 			$rows .= '<tr><td style="padding:8px;border:1px solid #ddd;"><strong>' .
 				esc_html( $field_name ) .
 				'</strong></td><td style="padding:8px;border:1px solid #ddd;">' .
-				esc_html( $value ) .
+				$value .
 				'</td></tr>';
 		}
 

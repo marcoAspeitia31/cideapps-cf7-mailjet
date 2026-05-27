@@ -201,6 +201,36 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 
 		update_option( 'cideapps_cf7_mailjet_dynamic_mappings', implode( "\n", $sanitized_lines ) );
 	}
+
+	$enable_attachment_urls_value = isset( $_POST['cideapps_cf7_mailjet_enable_attachment_urls'] ) && $_POST['cideapps_cf7_mailjet_enable_attachment_urls'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_enable_attachment_urls', $enable_attachment_urls_value );
+
+	$attachment_sources = isset( $_POST['cideapps_cf7_mailjet_attachment_mappings_source'] ) && is_array( $_POST['cideapps_cf7_mailjet_attachment_mappings_source'] )
+		? array_map( 'wp_unslash', $_POST['cideapps_cf7_mailjet_attachment_mappings_source'] )
+		: array();
+	$attachment_targets = isset( $_POST['cideapps_cf7_mailjet_attachment_mappings_target'] ) && is_array( $_POST['cideapps_cf7_mailjet_attachment_mappings_target'] )
+		? array_map( 'wp_unslash', $_POST['cideapps_cf7_mailjet_attachment_mappings_target'] )
+		: array();
+
+	$attachment_lines      = array();
+	$has_attachment_rows   = ! empty( $attachment_sources ) || ! empty( $attachment_targets );
+
+	if ( $has_attachment_rows ) {
+		$max_attachments = max( count( $attachment_sources ), count( $attachment_targets ) );
+		for ( $i = 0; $i < $max_attachments; $i++ ) {
+			$source = isset( $attachment_sources[ $i ] ) ? trim( (string) $attachment_sources[ $i ] ) : '';
+			$target = isset( $attachment_targets[ $i ] ) ? sanitize_key( trim( (string) $attachment_targets[ $i ] ) ) : '';
+
+			if ( '' === $source || '' === $target ) {
+				continue;
+			}
+
+			$attachment_lines[] = $source . ':' . $target;
+		}
+
+		update_option( 'cideapps_cf7_mailjet_attachment_mappings', implode( "\n", $attachment_lines ) );
+	}
+
 	$owner_notify_enabled_value = isset( $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] ) && $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_owner_notify_enabled', $owner_notify_enabled_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_owner_notify_to_email'] ) ) {
@@ -316,6 +346,42 @@ if ( empty( $dynamic_mappings_rows ) ) {
 		'target' => '',
 	);
 }
+
+$enable_attachment_urls_raw = get_option( 'cideapps_cf7_mailjet_enable_attachment_urls', 0 );
+$enable_attachment_urls     = ( $enable_attachment_urls_raw === 1 || $enable_attachment_urls_raw === '1' || $enable_attachment_urls_raw === true );
+$attachment_mappings        = get_option( 'cideapps_cf7_mailjet_attachment_mappings', '' );
+$attachment_mappings_lines  = is_string( $attachment_mappings ) ? preg_split( '/\r\n|\r|\n/', $attachment_mappings ) : array();
+$attachment_mappings_rows   = array();
+foreach ( (array) $attachment_mappings_lines as $attachment_mappings_line ) {
+	$attachment_mappings_line = trim( (string) $attachment_mappings_line );
+	if ( '' === $attachment_mappings_line ) {
+		continue;
+	}
+
+	$parts = explode( ':', $attachment_mappings_line, 2 );
+	if ( count( $parts ) !== 2 ) {
+		continue;
+	}
+
+	$source = trim( (string) $parts[0] );
+	$target = sanitize_key( trim( (string) $parts[1] ) );
+
+	if ( '' === $source || '' === $target ) {
+		continue;
+	}
+
+	$attachment_mappings_rows[] = array(
+		'source' => $source,
+		'target' => $target,
+	);
+}
+if ( empty( $attachment_mappings_rows ) ) {
+	$attachment_mappings_rows[] = array(
+		'source' => '',
+		'target' => '',
+	);
+}
+
 $owner_notify_enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
 $owner_notify_enabled     = ( $owner_notify_enabled_raw === 1 || $owner_notify_enabled_raw === '1' || $owner_notify_enabled_raw === true );
 $owner_notify_to_email    = get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' );
@@ -616,6 +682,57 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 						</p>
 						<p class="description">
 							<?php esc_html_e( 'Mail-tags especiales soportados: [_remote_ip], [_user_agent], [_url], [_date], [_time].', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Adjuntos CF7 (URLs en Mailjet)', 'cideapps-cf7-mailjet' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="cideapps_cf7_mailjet_enable_attachment_urls" name="cideapps_cf7_mailjet_enable_attachment_urls" value="1" <?php checked( $enable_attachment_urls, true ); ?> />
+							<?php esc_html_e( 'Copiar archivos subidos a uploads y enviar URLs públicas a Mailjet', 'cideapps-cf7-mailjet' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'CF7 elimina archivos temporales al terminar el envío; el plugin los guarda en uploads/cideapps-cf7-mailjet/ para que el enlace siga funcionando en el correo.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cideapps_cf7_mailjet_attachment_mappings"><?php esc_html_e( 'Mapeo de Adjuntos (CF7 -> Mailjet)', 'cideapps-cf7-mailjet' ); ?></label>
+					</th>
+					<td>
+						<div id="cideapps-cf7-mailjet-attachment-mappings" class="cideapps-cf7-mappings">
+							<?php foreach ( $attachment_mappings_rows as $attachment_row ) : ?>
+								<div class="cideapps-cf7-mappings__row">
+									<input
+										type="text"
+										name="cideapps_cf7_mailjet_attachment_mappings_source[]"
+										value="<?php echo esc_attr( $attachment_row['source'] ); ?>"
+										class="regular-text cideapps-cf7-mappings__source"
+										placeholder="<?php echo esc_attr__( 'campo file CF7 (ej: your-cv)', 'cideapps-cf7-mailjet' ); ?>"
+									/>
+									<span class="cideapps-cf7-mappings__arrow" aria-hidden="true">→</span>
+									<input
+										type="text"
+										name="cideapps_cf7_mailjet_attachment_mappings_target[]"
+										value="<?php echo esc_attr( $attachment_row['target'] ); ?>"
+										class="regular-text cideapps-cf7-mappings__target"
+										placeholder="<?php echo esc_attr__( 'variable Mailjet (ej: cv_url)', 'cideapps-cf7-mailjet' ); ?>"
+									/>
+									<button type="button" class="button cideapps-cf7-mappings__remove"><?php esc_html_e( 'Quitar', 'cideapps-cf7-mailjet' ); ?></button>
+								</div>
+							<?php endforeach; ?>
+						</div>
+						<p>
+							<button type="button" class="button button-secondary" id="cideapps-cf7-mailjet-attachment-mappings-add"><?php esc_html_e( 'Añadir', 'cideapps-cf7-mailjet' ); ?></button>
+						</p>
+						<input type="hidden" id="cideapps_cf7_mailjet_attachment_mappings" name="cideapps_cf7_mailjet_attachment_mappings" value="<?php echo esc_attr( (string) $attachment_mappings ); ?>" />
+						<p class="description">
+							<?php esc_html_e( 'Si dejas el mapeo vacío, se usará automáticamente el nombre del campo + _url (ej: your-cv -> your_cv_url).', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'También se envía la variable', 'cideapps-cf7-mailjet' ); ?>
+							<code>{{var:attachments_all}}</code>
+							<?php esc_html_e( 'con todas las URLs.', 'cideapps-cf7-mailjet' ); ?>
 						</p>
 					</td>
 				</tr>

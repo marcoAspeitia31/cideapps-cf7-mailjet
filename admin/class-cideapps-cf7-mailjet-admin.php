@@ -59,7 +59,10 @@ class Cideapps_Cf7_Mailjet_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles( $hook_suffix = '' ) {
+		if ( 'settings_page_cideapps-cf7-mailjet' !== $hook_suffix ) {
+			return;
+		}
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -82,7 +85,10 @@ class Cideapps_Cf7_Mailjet_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts( $hook_suffix = '' ) {
+		if ( 'settings_page_cideapps-cf7-mailjet' !== $hook_suffix ) {
+			return;
+		}
 
 		/**
 		 * This function is provided for demonstration purposes only.

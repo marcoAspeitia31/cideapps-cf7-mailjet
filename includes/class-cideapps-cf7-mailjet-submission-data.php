@@ -16,6 +16,14 @@
 class Cideapps_Cf7_Mailjet_Submission_Data {
 
 	/**
+	 * Cached persisted upload URLs for the current request (field => URLs).
+	 *
+	 * @since 1.3.0
+	 * @var array<string, string[]>
+	 */
+	private $persisted_upload_cache = array();
+
+	/**
 	 * Core mapped field keys sent to Mailjet templates.
 	 *
 	 * @since 1.2.0
@@ -139,6 +147,10 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 			$variables = array_merge( $variables, $this->collect_cf7_metadata( $submission ) );
 		}
 
+		if ( $this->is_attachment_urls_enabled() && $submission instanceof WPCF7_Submission ) {
+			$variables = array_merge( $variables, $this->collect_attachment_template_variables( $submission ) );
+		}
+
 		return $this->sanitize_mailjet_variables( $variables );
 	}
 
@@ -201,39 +213,7 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 	 * @return array[] List of mappings with source and target.
 	 */
 	private function parse_dynamic_mappings_option() {
-		$raw = get_option( 'cideapps_cf7_mailjet_dynamic_mappings', '' );
-		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
-			return array();
-		}
-
-		$lines    = preg_split( '/\r\n|\r|\n/', $raw );
-		$mappings = array();
-
-		foreach ( $lines as $line ) {
-			$line = trim( (string) $line );
-			if ( '' === $line ) {
-				continue;
-			}
-
-			$parts = explode( ':', $line, 2 );
-			if ( count( $parts ) !== 2 ) {
-				continue;
-			}
-
-			$source = trim( $parts[0] );
-			$target = sanitize_key( trim( $parts[1] ) );
-
-			if ( '' === $source || '' === $target ) {
-				continue;
-			}
-
-			$mappings[] = array(
-				'source' => $source,
-				'target' => $target,
-			);
-		}
-
-		return $mappings;
+		return $this->parse_line_mappings_option( 'cideapps_cf7_mailjet_dynamic_mappings' );
 	}
 
 	/**
@@ -281,6 +261,243 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 	public function is_submission_metadata_enabled() {
 		$raw = get_option( 'cideapps_cf7_mailjet_enable_submission_metadata', 0 );
 		return ( $raw === 1 || $raw === '1' || $raw === true );
+	}
+
+	/**
+	 * Whether to persist CF7 uploads and expose public URLs in Mailjet variables.
+	 *
+	 * @since 1.3.0
+	 * @return bool
+	 */
+	public function is_attachment_urls_enabled() {
+		$raw = get_option( 'cideapps_cf7_mailjet_enable_attachment_urls', 0 );
+		return ( $raw === 1 || $raw === '1' || $raw === true );
+	}
+
+	/**
+	 * Collect attachment URL variables for Mailjet templates.
+	 *
+	 * Copies files from CF7 temp storage to uploads/cideapps-cf7-mailjet/
+	 * so links remain available after CF7 deletes temp files.
+	 *
+	 * @since 1.3.0
+	 * @param WPCF7_Submission $submission CF7 submission.
+	 * @return array
+	 */
+	public function collect_attachment_template_variables( $submission ) {
+		$uploaded_files = $submission->uploaded_files();
+		if ( empty( $uploaded_files ) || ! is_array( $uploaded_files ) ) {
+			return array();
+		}
+
+		$mappings       = $this->parse_attachment_mappings_option();
+		$variables      = array();
+		$all_urls       = array();
+		$field_url_map  = $this->persist_uploaded_files_map( $uploaded_files );
+
+		if ( empty( $field_url_map ) ) {
+			return array();
+		}
+
+		if ( empty( $mappings ) ) {
+			foreach ( $field_url_map as $field_name => $urls ) {
+				$key = sanitize_key( $field_name . '_url' );
+				if ( '' === $key ) {
+					continue;
+				}
+				$variables[ $key ] = $this->join_urls( $urls );
+				$all_urls          = array_merge( $all_urls, $urls );
+			}
+		} else {
+			foreach ( $mappings as $mapping ) {
+				$field_name = $mapping['source'];
+				$target_key = $mapping['target'];
+
+				if ( ! isset( $field_url_map[ $field_name ] ) ) {
+					continue;
+				}
+
+				$variables[ $target_key ] = $this->join_urls( $field_url_map[ $field_name ] );
+				$all_urls                 = array_merge( $all_urls, $field_url_map[ $field_name ] );
+			}
+		}
+
+		if ( ! empty( $all_urls ) ) {
+			$variables['attachments_all'] = $this->join_urls( array_values( array_unique( $all_urls ) ) );
+		}
+
+		return $this->sanitize_mailjet_variables( $variables );
+	}
+
+	/**
+	 * Get persisted public URLs grouped by CF7 file field name.
+	 *
+	 * @since 1.3.0
+	 * @param WPCF7_Submission $submission CF7 submission.
+	 * @return array<string, string[]> Field name => list of URLs.
+	 */
+	public function get_persisted_attachment_urls_by_field( $submission ) {
+		$uploaded_files = $submission->uploaded_files();
+		if ( empty( $uploaded_files ) || ! is_array( $uploaded_files ) ) {
+			return array();
+		}
+
+		return $this->persist_uploaded_files_map( $uploaded_files );
+	}
+
+	/**
+	 * Persist uploaded files and return their public URLs by field.
+	 *
+	 * @since 1.3.0
+	 * @param array $uploaded_files CF7 uploaded_files() array.
+	 * @return array<string, string[]>
+	 */
+	private function persist_uploaded_files_map( $uploaded_files ) {
+		if ( ! empty( $this->persisted_upload_cache ) ) {
+			return $this->persisted_upload_cache;
+		}
+
+		$map = array();
+
+		foreach ( $uploaded_files as $field_name => $paths ) {
+			$field_name = (string) $field_name;
+			$urls       = array();
+
+			foreach ( (array) $paths as $path ) {
+				$url = $this->persist_cf7_upload( (string) $path );
+				if ( ! empty( $url ) ) {
+					$urls[] = $url;
+				}
+			}
+
+			if ( ! empty( $urls ) ) {
+				$map[ $field_name ] = $urls;
+			}
+		}
+
+		$this->persisted_upload_cache = $map;
+
+		return $map;
+	}
+
+	/**
+	 * Copy a CF7 temp upload into a persistent public uploads subdirectory.
+	 *
+	 * @since 1.3.0
+	 * @param string $file_path Absolute path to uploaded file.
+	 * @return string Public URL or empty string on failure.
+	 */
+	private function persist_cf7_upload( $file_path ) {
+		if ( empty( $file_path ) || ! @is_file( $file_path ) || ! @is_readable( $file_path ) ) {
+			return '';
+		}
+
+		$upload_dir = wp_upload_dir();
+		if ( ! empty( $upload_dir['error'] ) ) {
+			return '';
+		}
+
+		$subdir      = '/cideapps-cf7-mailjet/' . gmdate( 'Y/m' );
+		$target_dir  = $upload_dir['basedir'] . $subdir;
+		wp_mkdir_p( $target_dir );
+
+		$filename    = wp_unique_filename( $target_dir, wp_basename( $file_path ) );
+		$target_path = trailingslashit( $target_dir ) . $filename;
+
+		if ( ! @copy( $file_path, $target_path ) ) {
+			return '';
+		}
+
+		// Restrict direct PHP execution in upload folder.
+		$this->maybe_add_uploads_htaccess( $upload_dir['basedir'] . '/cideapps-cf7-mailjet' );
+
+		return esc_url_raw( trailingslashit( $upload_dir['baseurl'] . $subdir ) . $filename );
+	}
+
+	/**
+	 * Add .htaccess to block PHP execution in plugin upload directory (Apache).
+	 *
+	 * @since 1.3.0
+	 * @param string $dir Directory path.
+	 * @return void
+	 */
+	private function maybe_add_uploads_htaccess( $dir ) {
+		if ( ! wp_mkdir_p( $dir ) ) {
+			return;
+		}
+
+		$htaccess = trailingslashit( $dir ) . '.htaccess';
+		if ( file_exists( $htaccess ) ) {
+			return;
+		}
+
+		$rules = "<Files *>\n  Require all denied\n</Files>\n<FilesMatch \"\\.(?i:pdf|jpe?g|png|gif|webp|docx?|xlsx?|txt|csv|zip)$\">\n  Require all granted\n</FilesMatch>\n";
+		@file_put_contents( $htaccess, $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+	}
+
+	/**
+	 * Parse attachment field mappings from admin option.
+	 *
+	 * @since 1.3.0
+	 * @return array[] List of mappings with source and target.
+	 */
+	private function parse_attachment_mappings_option() {
+		return $this->parse_line_mappings_option( 'cideapps_cf7_mailjet_attachment_mappings' );
+	}
+
+	/**
+	 * Parse line-based mappings stored as "source:target" per line.
+	 *
+	 * @since 1.3.0
+	 * @param string $option_name Option key.
+	 * @return array[]
+	 */
+	private function parse_line_mappings_option( $option_name ) {
+		$raw = get_option( $option_name, '' );
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
+			return array();
+		}
+
+		$lines    = preg_split( '/\r\n|\r|\n/', $raw );
+		$mappings = array();
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+			if ( '' === $line ) {
+				continue;
+			}
+
+			$parts = explode( ':', $line, 2 );
+			if ( count( $parts ) !== 2 ) {
+				continue;
+			}
+
+			$source = trim( $parts[0] );
+			$target = sanitize_key( trim( $parts[1] ) );
+
+			if ( '' === $source || '' === $target ) {
+				continue;
+			}
+
+			$mappings[] = array(
+				'source' => $source,
+				'target' => $target,
+			);
+		}
+
+		return $mappings;
+	}
+
+	/**
+	 * Join multiple URLs for Mailjet variable value.
+	 *
+	 * @since 1.3.0
+	 * @param string[] $urls URLs.
+	 * @return string
+	 */
+	private function join_urls( $urls ) {
+		$urls = array_values( array_filter( array_map( 'esc_url_raw', (array) $urls ) ) );
+		return implode( "\n", $urls );
 	}
 
 	/**
@@ -406,12 +623,81 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 
 			if ( 'message' === $key ) {
 				$sanitized[ $key ] = sanitize_textarea_field( (string) $value );
+			} elseif ( $this->is_url_variable_key( $key ) || $this->value_looks_like_url( $value ) ) {
+				$sanitized[ $key ] = $this->sanitize_url_variable_value( (string) $value );
 			} else {
 				$sanitized[ $key ] = sanitize_text_field( (string) $value );
 			}
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Whether a Mailjet variable key should be treated as URL content.
+	 *
+	 * @since 1.3.0
+	 * @param string $key Variable key.
+	 * @return bool
+	 */
+	private function is_url_variable_key( $key ) {
+		if ( in_array( $key, array( 'attachments_all', 'attachment_url', 'attachment_urls' ), true ) ) {
+			return true;
+		}
+
+		return (bool) preg_match( '/_url(s)?$/', (string) $key );
+	}
+
+	/**
+	 * Whether a value looks like a URL (single or multiline URLs).
+	 *
+	 * @since 1.3.0
+	 * @param mixed $value Raw value.
+	 * @return bool
+	 */
+	private function sanitize_url_variable_value( $value ) {
+		$lines = preg_split( '/\r\n|\r|\n/', $value );
+		$urls  = array();
+
+		foreach ( (array) $lines as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				continue;
+			}
+			$url = esc_url_raw( $line );
+			if ( ! empty( $url ) ) {
+				$urls[] = $url;
+			}
+		}
+
+		return implode( "\n", $urls );
+	}
+
+	/**
+	 * Whether a value looks like a URL (single or multiline URLs).
+	 *
+	 * @since 1.3.0
+	 * @param mixed $value Raw value.
+	 * @return bool
+	 */
+	private function value_looks_like_url( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) {
+			return false;
+		}
+
+		$lines = preg_split( '/\r\n|\r|\n/', $value );
+		foreach ( (array) $lines as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				continue;
+			}
+			if ( ! filter_var( $line, FILTER_VALIDATE_URL ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
