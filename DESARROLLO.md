@@ -82,6 +82,7 @@ Agregar una página en:
 - service_field (default: service)
 - message_field (default: your-message)
 - enable_submission_metadata (bool, default: off) — metadata CF7 en variables Mailjet
+- dynamic_mappings (textarea, una línea por mapeo `origen:variable_mailjet`)
 
 #### Seguridad
 - rate_limit_email_minutes (default: 10)
@@ -148,12 +149,16 @@ Clase: `includes/class-cideapps-cf7-mailjet-submission-data.php`
 | `remote_ip` | IP enmascarada (último octeto / último grupo IPv6) |
 | `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` | Query string de la URL de origen |
 
-### Etapa 2 (planificado)
+### Etapa 2 (implementado parcialmente)
 
-- UI para mapear **campos CF7 adicionales** a claves Mailjet arbitrarias
-- Soporte de **mail tags especiales** de CF7 (`[_remote_ip]`, etc.)
-- Adjuntos: URLs de archivos subidos (no binarios en API Mailjet)
-- Metadata ya preparada en código; activar checkbox en admin cuando la plantilla esté lista
+- UI en admin para mapear **campos CF7 adicionales** a claves Mailjet arbitrarias
+  - Opción: `cideapps_cf7_mailjet_dynamic_mappings`
+  - Formato: una línea por mapeo `origen:variable_mailjet`
+  - Ejemplos: `your-company:company`, `your-budget:budget`
+- Soporte de mail-tags especiales básicos:
+  - `[_remote_ip]`, `[_user_agent]`, `[_url]`, `[_date]`, `[_time]`
+  - Ejemplo: `[_remote_ip]:visitor_ip`
+- Adjuntos (pendiente): URLs de archivos subidos (no binarios en API Mailjet)
 
 ### Logs (si `debug_logs` activo)
 

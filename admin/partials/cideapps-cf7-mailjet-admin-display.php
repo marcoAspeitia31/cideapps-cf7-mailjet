@@ -149,6 +149,34 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	update_option( 'cideapps_cf7_mailjet_service_send_label', $service_send_label_value );
 	$enable_submission_metadata_value = isset( $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] ) && $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_enable_submission_metadata', $enable_submission_metadata_value );
+	if ( isset( $_POST['cideapps_cf7_mailjet_dynamic_mappings'] ) ) {
+		$dynamic_mappings_raw = wp_unslash( $_POST['cideapps_cf7_mailjet_dynamic_mappings'] );
+		$dynamic_lines        = preg_split( '/\r\n|\r|\n/', (string) $dynamic_mappings_raw );
+		$sanitized_lines      = array();
+
+		foreach ( $dynamic_lines as $dynamic_line ) {
+			$dynamic_line = trim( (string) $dynamic_line );
+			if ( '' === $dynamic_line ) {
+				continue;
+			}
+
+			$parts = explode( ':', $dynamic_line, 2 );
+			if ( count( $parts ) !== 2 ) {
+				continue;
+			}
+
+			$source = trim( $parts[0] );
+			$target = sanitize_key( trim( $parts[1] ) );
+
+			if ( '' === $source || '' === $target ) {
+				continue;
+			}
+
+			$sanitized_lines[] = $source . ':' . $target;
+		}
+
+		update_option( 'cideapps_cf7_mailjet_dynamic_mappings', implode( "\n", $sanitized_lines ) );
+	}
 	$owner_notify_enabled_value = isset( $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] ) && $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_owner_notify_enabled', $owner_notify_enabled_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_owner_notify_to_email'] ) ) {
@@ -232,6 +260,7 @@ $service_send_label_raw  = get_option( 'cideapps_cf7_mailjet_service_send_label'
 $service_send_label      = ( $service_send_label_raw === 1 || $service_send_label_raw === '1' || $service_send_label_raw === true );
 $enable_submission_metadata_raw = get_option( 'cideapps_cf7_mailjet_enable_submission_metadata', 0 );
 $enable_submission_metadata     = ( $enable_submission_metadata_raw === 1 || $enable_submission_metadata_raw === '1' || $enable_submission_metadata_raw === true );
+$dynamic_mappings             = get_option( 'cideapps_cf7_mailjet_dynamic_mappings', '' );
 $owner_notify_enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
 $owner_notify_enabled     = ( $owner_notify_enabled_raw === 1 || $owner_notify_enabled_raw === '1' || $owner_notify_enabled_raw === true );
 $owner_notify_to_email    = get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' );
@@ -489,6 +518,24 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 							<code>{{var:utm_medium}}</code>,
 							<code>{{var:utm_term}}</code>,
 							<code>{{var:utm_content}}</code>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cideapps_cf7_mailjet_dynamic_mappings"><?php esc_html_e( 'Campos Dinámicos (CF7 -> Mailjet)', 'cideapps-cf7-mailjet' ); ?></label>
+					</th>
+					<td>
+						<textarea id="cideapps_cf7_mailjet_dynamic_mappings" name="cideapps_cf7_mailjet_dynamic_mappings" rows="8" class="large-text code"><?php echo esc_textarea( $dynamic_mappings ); ?></textarea>
+						<p class="description">
+							<?php esc_html_e( 'Una línea por mapeo con formato origen:variable_mailjet. Ejemplos:', 'cideapps-cf7-mailjet' ); ?>
+							<code>your-company:company</code>,
+							<code>your-budget:budget</code>,
+							<code>[_remote_ip]:visitor_ip</code>,
+							<code>[_url]:landing_url</code>
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Mail-tags especiales soportados: [_remote_ip], [_user_agent], [_url], [_date], [_time].', 'cideapps-cf7-mailjet' ); ?>
 						</p>
 					</td>
 				</tr>

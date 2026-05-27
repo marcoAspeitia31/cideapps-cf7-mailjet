@@ -133,11 +133,143 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 			'form_id' => (string) (int) $form_id,
 		);
 
+		$variables = array_merge( $variables, $this->build_dynamic_template_variables( $submission ) );
+
 		if ( $this->is_submission_metadata_enabled() && $submission instanceof WPCF7_Submission ) {
 			$variables = array_merge( $variables, $this->collect_cf7_metadata( $submission ) );
 		}
 
 		return $this->sanitize_mailjet_variables( $variables );
+	}
+
+	/**
+	 * Build dynamic variables defined in admin mapping option.
+	 *
+	 * Mapping format (one per line): cf7_field:mailjet_key
+	 * Also supports basic CF7 special mail-tags in source field, e.g. [_remote_ip].
+	 *
+	 * @since 1.2.0
+	 * @param WPCF7_Submission|null $submission CF7 submission.
+	 * @return array
+	 */
+	public function build_dynamic_template_variables( $submission = null ) {
+		if ( ! ( $submission instanceof WPCF7_Submission ) ) {
+			return array();
+		}
+
+		$mappings = $this->parse_dynamic_mappings_option();
+		if ( empty( $mappings ) ) {
+			return array();
+		}
+
+		$posted_data = $submission->get_posted_data();
+		$variables   = array();
+
+		foreach ( $mappings as $mapping ) {
+			$source_key  = $mapping['source'];
+			$target_key  = $mapping['target'];
+			$raw_value   = '';
+
+			if ( $this->is_special_mail_tag( $source_key ) ) {
+				$raw_value = $this->resolve_special_mail_tag_value( $submission, $source_key );
+			} elseif ( isset( $posted_data[ $source_key ] ) ) {
+				$raw_value = $posted_data[ $source_key ];
+			}
+
+			if ( is_array( $raw_value ) ) {
+				$raw_value = implode( ', ', array_map( 'sanitize_text_field', $raw_value ) );
+			}
+
+			$raw_value = (string) $raw_value;
+			if ( '' === trim( $raw_value ) ) {
+				continue;
+			}
+
+			$variables[ $target_key ] = $raw_value;
+		}
+
+		return $this->sanitize_mailjet_variables( $variables );
+	}
+
+	/**
+	 * Parse dynamic mappings from admin option.
+	 *
+	 * Each line format: source:target
+	 * Example: your-company:company
+	 *
+	 * @since 1.2.0
+	 * @return array[] List of mappings with source and target.
+	 */
+	private function parse_dynamic_mappings_option() {
+		$raw = get_option( 'cideapps_cf7_mailjet_dynamic_mappings', '' );
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
+			return array();
+		}
+
+		$lines    = preg_split( '/\r\n|\r|\n/', $raw );
+		$mappings = array();
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+			if ( '' === $line ) {
+				continue;
+			}
+
+			$parts = explode( ':', $line, 2 );
+			if ( count( $parts ) !== 2 ) {
+				continue;
+			}
+
+			$source = trim( $parts[0] );
+			$target = sanitize_key( trim( $parts[1] ) );
+
+			if ( '' === $source || '' === $target ) {
+				continue;
+			}
+
+			$mappings[] = array(
+				'source' => $source,
+				'target' => $target,
+			);
+		}
+
+		return $mappings;
+	}
+
+	/**
+	 * Check whether source is a CF7 special mail-tag.
+	 *
+	 * @since 1.2.0
+	 * @param string $source Source token.
+	 * @return bool
+	 */
+	private function is_special_mail_tag( $source ) {
+		return (bool) preg_match( '/^\[_[a-z0-9_]+\]$/i', (string) $source );
+	}
+
+	/**
+	 * Resolve supported CF7 special mail-tags from submission metadata.
+	 *
+	 * @since 1.2.0
+	 * @param WPCF7_Submission $submission CF7 submission.
+	 * @param string           $tag        Special mail-tag.
+	 * @return string
+	 */
+	private function resolve_special_mail_tag_value( $submission, $tag ) {
+		switch ( $tag ) {
+			case '[_remote_ip]':
+				return (string) $submission->get_meta( 'remote_ip' );
+			case '[_user_agent]':
+				return (string) $submission->get_meta( 'user_agent' );
+			case '[_url]':
+				return (string) $submission->get_meta( 'url' );
+			case '[_date]':
+				return sanitize_text_field( wp_date( get_option( 'date_format' ) ) );
+			case '[_time]':
+				return sanitize_text_field( wp_date( get_option( 'time_format' ) ) );
+			default:
+				return '';
+		}
 	}
 
 	/**
