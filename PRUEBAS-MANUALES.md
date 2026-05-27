@@ -2,7 +2,7 @@
 
 Documento de validación manual del plugin. Incluye pruebas del plan original y las realizadas durante el desarrollo (modos de envío, notificación al negocio, variables Mailjet, metadata, mapeos dinámicos y adjuntos).
 
-**Versión plugin probada:** 1.3.0  
+**Versión plugin probada:** 1.3.1  
 **Última actualización:** mayo 2026
 
 ---
@@ -32,7 +32,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Adjuntos como URLs | OK | Carpeta `uploads/cideapps-cf7-mailjet/` (no Media Library) |
 | Plantilla Mailjet mal configurada | Diagnóstico | Variables en plantilla sin enviar en API → bloqueo Mailjet; no era bug del plugin |
 | Modo `cf7_mail`, formulario deshabilitado, idempotencia, rate limit | OK | Validado en staging |
-| Reply-To notificación (template) | Comportamiento conocido | Reply-To = `from_email`; mejora opcional: email del lead |
+| Reply-To notificación (template) | OK (v1.3.1) | Reply-To = email del lead |
 
 ---
 
@@ -81,14 +81,14 @@ Comportamiento actual del plugin:
 
 | Modo notificación | Reply-To en API | ¿Responder llega al cliente? |
 |-------------------|-----------------|------------------------------|
-| **Template Mailjet** | `from_email` (ej. `contacto@cide-apps.com`) | No — responde al mismo correo del negocio |
+| **Template Mailjet** | Email del lead (`$lead_email`) | Sí — responde al prospecto |
 | **HTML por defecto** | Email del lead (`$lead_email`) | Sí — responde al prospecto |
 
-- [x] **Template Mailjet:** Reply-To = `from_email` (comportamiento actual; coincide con captura: To y Reply-To iguales al correo del negocio)
+- [x] **Template Mailjet:** Reply-To = email del cliente del formulario (desde v1.3.1)
 - [x] **HTML por defecto:** Reply-To = email del cliente del formulario
-- [ ] **Mejora recomendada (opcional):** en modo template, usar email del lead como Reply-To para que «Responder» contacte al prospecto (`cideapps@gmail.com` en el cuerpo)
+- [ ] Revalidar en inbox: To = negocio, Reply-To = email del prospecto (ej. `cideapps@gmail.com`)
 
-La autorespuesta al cliente usa Reply-To = `from_email` a propósito (el cliente debe responder al negocio, no a sí mismo).
+La autorespuesta al cliente sigue usando Reply-To = `from_email` a propósito (el cliente debe responder al negocio, no a sí mismo).
 
 ### Plantilla Mailjet (negocio / autorespuesta)
 

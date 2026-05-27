@@ -303,7 +303,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 				return;
 			}
 
-			$result = $this->mailjet_api->send_email( $to_email, $template_id, $variables, $from_email, $from_name );
+			$result = $this->mailjet_api->send_email( $to_email, $template_id, $variables, $from_email, $from_name, $lead_email );
 		} else {
 			$subject = get_option( 'cideapps_cf7_mailjet_owner_notify_subject', __( 'Nuevo lead desde formulario web', 'cideapps-cf7-mailjet' ) );
 			$html    = $this->build_default_business_notification_html( $contact_form, $posted_data, $submission );

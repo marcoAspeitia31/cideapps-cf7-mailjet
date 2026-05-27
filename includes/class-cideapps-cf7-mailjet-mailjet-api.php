@@ -310,9 +310,10 @@ class Cideapps_Cf7_Mailjet_API {
 	 * @param    array     $variables     Template variables (name, email, phone, service)
 	 * @param    string    $from_email    From email address
 	 * @param    string    $from_name     From name
+	 * @param    string    $reply_to      Reply-To email (optional; defaults to from_email)
 	 * @return   array|WP_Error    Response array or WP_Error on failure
 	 */
-	public function send_email( $to_email, $template_id, $variables = array(), $from_email = '', $from_name = '' ) {
+	public function send_email( $to_email, $template_id, $variables = array(), $from_email = '', $from_name = '', $reply_to = '' ) {
 		if ( empty( $this->public_key ) || empty( $this->private_key ) ) {
 			return new WP_Error( 'no_credentials', 'Mailjet API credentials are not configured.' );
 		}
@@ -337,6 +338,11 @@ class Cideapps_Cf7_Mailjet_API {
 			return new WP_Error( 'invalid_from_email', 'Invalid from email address.' );
 		}
 
+		$reply_to_email = $from_email;
+		if ( ! empty( $reply_to ) && is_email( $reply_to ) ) {
+			$reply_to_email = $reply_to;
+		}
+
 		// Prepare email data
 		$email_data = array(
 			'Messages' => array(
@@ -351,7 +357,7 @@ class Cideapps_Cf7_Mailjet_API {
 						),
 					),
 					'ReplyTo'  => array(
-						'Email' => sanitize_email( $from_email ),
+						'Email' => sanitize_email( $reply_to_email ),
 					),
 					'TemplateID'       => (int) $template_id,
 					'TemplateLanguage' => true,
