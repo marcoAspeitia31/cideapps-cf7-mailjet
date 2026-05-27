@@ -82,7 +82,7 @@ Agregar una página en:
 - service_field (default: service)
 - message_field (default: your-message)
 - enable_submission_metadata (bool, default: off) — metadata CF7 en variables Mailjet
-- dynamic_mappings (textarea, una línea por mapeo `origen:variable_mailjet`)
+- dynamic_mappings (UI con filas repetibles, una por mapeo `origen -> variable_mailjet`)
 
 #### Seguridad
 - rate_limit_email_minutes (default: 10)

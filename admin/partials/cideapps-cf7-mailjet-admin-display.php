@@ -149,10 +149,34 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	update_option( 'cideapps_cf7_mailjet_service_send_label', $service_send_label_value );
 	$enable_submission_metadata_value = isset( $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] ) && $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_enable_submission_metadata', $enable_submission_metadata_value );
-	if ( isset( $_POST['cideapps_cf7_mailjet_dynamic_mappings'] ) ) {
+	$dynamic_sources = isset( $_POST['cideapps_cf7_mailjet_dynamic_mappings_source'] ) && is_array( $_POST['cideapps_cf7_mailjet_dynamic_mappings_source'] )
+		? array_map( 'wp_unslash', $_POST['cideapps_cf7_mailjet_dynamic_mappings_source'] )
+		: array();
+	$dynamic_targets = isset( $_POST['cideapps_cf7_mailjet_dynamic_mappings_target'] ) && is_array( $_POST['cideapps_cf7_mailjet_dynamic_mappings_target'] )
+		? array_map( 'wp_unslash', $_POST['cideapps_cf7_mailjet_dynamic_mappings_target'] )
+		: array();
+
+	$sanitized_lines = array();
+	$has_repeatables = ! empty( $dynamic_sources ) || ! empty( $dynamic_targets );
+
+	if ( $has_repeatables ) {
+		$max = max( count( $dynamic_sources ), count( $dynamic_targets ) );
+		for ( $i = 0; $i < $max; $i++ ) {
+			$source = isset( $dynamic_sources[ $i ] ) ? trim( (string) $dynamic_sources[ $i ] ) : '';
+			$target = isset( $dynamic_targets[ $i ] ) ? sanitize_key( trim( (string) $dynamic_targets[ $i ] ) ) : '';
+
+			if ( '' === $source || '' === $target ) {
+				continue;
+			}
+
+			$sanitized_lines[] = $source . ':' . $target;
+		}
+
+		update_option( 'cideapps_cf7_mailjet_dynamic_mappings', implode( "\n", $sanitized_lines ) );
+	} elseif ( isset( $_POST['cideapps_cf7_mailjet_dynamic_mappings'] ) ) {
+		// Backward-compatibility: accept the old textarea format if present.
 		$dynamic_mappings_raw = wp_unslash( $_POST['cideapps_cf7_mailjet_dynamic_mappings'] );
 		$dynamic_lines        = preg_split( '/\r\n|\r|\n/', (string) $dynamic_mappings_raw );
-		$sanitized_lines      = array();
 
 		foreach ( $dynamic_lines as $dynamic_line ) {
 			$dynamic_line = trim( (string) $dynamic_line );
@@ -261,6 +285,37 @@ $service_send_label      = ( $service_send_label_raw === 1 || $service_send_labe
 $enable_submission_metadata_raw = get_option( 'cideapps_cf7_mailjet_enable_submission_metadata', 0 );
 $enable_submission_metadata     = ( $enable_submission_metadata_raw === 1 || $enable_submission_metadata_raw === '1' || $enable_submission_metadata_raw === true );
 $dynamic_mappings             = get_option( 'cideapps_cf7_mailjet_dynamic_mappings', '' );
+$dynamic_mappings_lines       = is_string( $dynamic_mappings ) ? preg_split( '/\r\n|\r|\n/', $dynamic_mappings ) : array();
+$dynamic_mappings_rows        = array();
+foreach ( (array) $dynamic_mappings_lines as $dynamic_mappings_line ) {
+	$dynamic_mappings_line = trim( (string) $dynamic_mappings_line );
+	if ( '' === $dynamic_mappings_line ) {
+		continue;
+	}
+
+	$parts = explode( ':', $dynamic_mappings_line, 2 );
+	if ( count( $parts ) !== 2 ) {
+		continue;
+	}
+
+	$source = trim( (string) $parts[0] );
+	$target = sanitize_key( trim( (string) $parts[1] ) );
+
+	if ( '' === $source || '' === $target ) {
+		continue;
+	}
+
+	$dynamic_mappings_rows[] = array(
+		'source' => $source,
+		'target' => $target,
+	);
+}
+if ( empty( $dynamic_mappings_rows ) ) {
+	$dynamic_mappings_rows[] = array(
+		'source' => '',
+		'target' => '',
+	);
+}
 $owner_notify_enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
 $owner_notify_enabled     = ( $owner_notify_enabled_raw === 1 || $owner_notify_enabled_raw === '1' || $owner_notify_enabled_raw === true );
 $owner_notify_to_email    = get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' );
@@ -526,7 +581,32 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 						<label for="cideapps_cf7_mailjet_dynamic_mappings"><?php esc_html_e( 'Campos Dinámicos (CF7 -> Mailjet)', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
-						<textarea id="cideapps_cf7_mailjet_dynamic_mappings" name="cideapps_cf7_mailjet_dynamic_mappings" rows="8" class="large-text code"><?php echo esc_textarea( $dynamic_mappings ); ?></textarea>
+						<div id="cideapps-cf7-mailjet-dynamic-mappings" class="cideapps-cf7-mappings">
+							<?php foreach ( $dynamic_mappings_rows as $index => $row ) : ?>
+								<div class="cideapps-cf7-mappings__row">
+									<input
+										type="text"
+										name="cideapps_cf7_mailjet_dynamic_mappings_source[]"
+										value="<?php echo esc_attr( $row['source'] ); ?>"
+										class="regular-text cideapps-cf7-mappings__source"
+										placeholder="<?php echo esc_attr__( 'origen (ej: your-company o [_url])', 'cideapps-cf7-mailjet' ); ?>"
+									/>
+									<span class="cideapps-cf7-mappings__arrow" aria-hidden="true">→</span>
+									<input
+										type="text"
+										name="cideapps_cf7_mailjet_dynamic_mappings_target[]"
+										value="<?php echo esc_attr( $row['target'] ); ?>"
+										class="regular-text cideapps-cf7-mappings__target"
+										placeholder="<?php echo esc_attr__( 'variable Mailjet (ej: company)', 'cideapps-cf7-mailjet' ); ?>"
+									/>
+									<button type="button" class="button cideapps-cf7-mappings__remove"><?php esc_html_e( 'Remove', 'cideapps-cf7-mailjet' ); ?></button>
+								</div>
+							<?php endforeach; ?>
+						</div>
+						<p>
+							<button type="button" class="button button-secondary" id="cideapps-cf7-mailjet-dynamic-mappings-add"><?php esc_html_e( 'Add', 'cideapps-cf7-mailjet' ); ?></button>
+						</p>
+						<input type="hidden" id="cideapps_cf7_mailjet_dynamic_mappings" name="cideapps_cf7_mailjet_dynamic_mappings" value="<?php echo esc_attr( (string) $dynamic_mappings ); ?>" />
 						<p class="description">
 							<?php esc_html_e( 'Una línea por mapeo con formato origen:variable_mailjet. Ejemplos:', 'cideapps-cf7-mailjet' ); ?>
 							<code>your-company:company</code>,
