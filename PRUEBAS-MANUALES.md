@@ -9,11 +9,11 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 ## Pre-requisitos
 
-- [ ] Plugin activo con credenciales Mailjet válidas (dominio verificado en Mailjet)
-- [ ] Formulario CF7 habilitado en **Ajustes → CF7 Mailjet**
-- [ ] Campos core mapeados: email, nombre, teléfono, servicio, mensaje (según el formulario)
-- [ ] `debug_logs` activado en staging para revisar `wp-content/debug.log` (`[CIDEAPPS-CF7-MAILJET]`)
-- [ ] En staging, considerar **rate limit en 0** para no confundir bloqueos con bugs
+- [x] Plugin activo con credenciales Mailjet válidas (dominio verificado en Mailjet)
+- [x] Formulario CF7 habilitado en **Ajustes → CF7 Mailjet**
+- [x] Campos core mapeados: email, nombre, teléfono, servicio, mensaje (según el formulario)
+- [x] `debug_logs` activado en staging para revisar `wp-content/debug.log` (`[CIDEAPPS-CF7-MAILJET]`)
+- [x] En staging, considerar **rate limit en 0** para no confundir bloqueos con bugs
 
 ---
 
@@ -31,6 +31,8 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Campos dinámicos (mapeo CF7 → Mailjet) | OK | UI repetible Add/Remove |
 | Adjuntos como URLs | OK | Carpeta `uploads/cideapps-cf7-mailjet/` (no Media Library) |
 | Plantilla Mailjet mal configurada | Diagnóstico | Variables en plantilla sin enviar en API → bloqueo Mailjet; no era bug del plugin |
+| Modo `cf7_mail`, formulario deshabilitado, idempotencia, rate limit | OK | Validado en staging |
+| Reply-To notificación (template) | Comportamiento conocido | Reply-To = `from_email`; mejora opcional: email del lead |
 
 ---
 
@@ -38,12 +40,12 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 ### 1.1 Modo `cf7_mail` (CF7 + Mailjet)
 
-- [ ] Formulario con modo **CF7 + Mailjet**
-- [ ] Con SMTP/`wp_mail` funcionando: mensaje de éxito en front
-- [ ] Contacto agregado a Mailjet (si lista habilitada)
-- [ ] Autorespuesta recibida (si habilitada)
-- [ ] Log: `Delivery mode for form {id}: cf7_mail`
-- [ ] Log: `wpcf7_skip_mail applied: no`
+- [x] Formulario con modo **CF7 + Mailjet**
+- [x] Con SMTP/`wp_mail` funcionando: mensaje de éxito en front
+- [x] Contacto agregado a Mailjet (si lista habilitada)
+- [x] Autorespuesta recibida (si habilitada)
+- [x] Log: `Delivery mode for form {id}: cf7_mail`
+- [x] Log: `wpcf7_skip_mail applied: no`
 
 ### 1.2 Modo `mailjet_only` (VPS / SMTP bloqueado)
 
@@ -58,9 +60,9 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 ### 1.3 Formulario no habilitado
 
-- [ ] Formulario sin checkbox en ajustes del plugin
-- [ ] Envío CF7 normal (sin integración Mailjet)
-- [ ] Log: `Form ID X is not enabled. Skipping.`
+- [x] Formulario sin checkbox en ajustes del plugin
+- [x] Envío CF7 normal (sin integración Mailjet)
+- [x] Log: `Form ID X is not enabled. Skipping.`
 
 ---
 
@@ -68,17 +70,32 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 - [x] Checkbox **Notificación al Negocio** activo
 - [x] Email destino negocio configurado y válido
-- [ ] Modo **Template ID de Mailjet**: correo recibido con variables correctas
-- [ ] Modo **HTML por defecto del plugin**: correo recibido con tabla de campos
+- [x] Modo **Template ID de Mailjet**: correo recibido con variables correctas
+- [x] Modo **HTML por defecto del plugin**: correo recibido con tabla de campos
 - [x] Orden respetado: (1) notificación negocio → (2) lista → (3) autorespuesta
-- [ ] Reply-To / remitente según `from_email` / `from_name` del plugin
+- [x] Remitente **From** según `from_email` / `from_name` del plugin (verificado)
+
+### Reply-To en notificación al negocio
+
+Comportamiento actual del plugin:
+
+| Modo notificación | Reply-To en API | ¿Responder llega al cliente? |
+|-------------------|-----------------|------------------------------|
+| **Template Mailjet** | `from_email` (ej. `contacto@cide-apps.com`) | No — responde al mismo correo del negocio |
+| **HTML por defecto** | Email del lead (`$lead_email`) | Sí — responde al prospecto |
+
+- [x] **Template Mailjet:** Reply-To = `from_email` (comportamiento actual; coincide con captura: To y Reply-To iguales al correo del negocio)
+- [x] **HTML por defecto:** Reply-To = email del cliente del formulario
+- [ ] **Mejora recomendada (opcional):** en modo template, usar email del lead como Reply-To para que «Responder» contacte al prospecto (`cideapps@gmail.com` en el cuerpo)
+
+La autorespuesta al cliente usa Reply-To = `from_email` a propósito (el cliente debe responder al negocio, no a sí mismo).
 
 ### Plantilla Mailjet (negocio / autorespuesta)
 
 - [x] Variables core en plantilla: `name`, `email`, `phone`, `service`, `message`, `form_id`
-- [ ] Si usas metadata: `source_url`, `source_page`, `submitted_at`, `user_agent`, `remote_ip`, `utm_*`
-- [ ] Si usas mapeos dinámicos: mismas claves que definiste (ej. `company`, `budget`)
-- [ ] Si usas adjuntos: solo incluir `{{var:...}}` si la variable **siempre** se envía, o usar valor por defecto `{{var:clave:""}}`
+- [x] Si usas metadata: `source_url`, `source_page`, `submitted_at`, `user_agent`, `remote_ip`, `utm_*`
+- [x] Si usas mapeos dinámicos: mismas claves que definiste (ej. `company`, `budget`)
+- [x] Si usas adjuntos: solo incluir `{{var:...}}` si la variable **siempre** se envía, o usar valor por defecto `{{var:clave:""}}`
 - [x] **Incidencia resuelta:** plantilla con variables no enviadas en API → Mailjet bloquea el envío (revisar panel Mailjet y payload `Variables`)
 
 ---
@@ -132,8 +149,8 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 
 - [x] Envío **con** archivo: archivo visible en carpeta `uploads/cideapps-cf7-mailjet/`
 - [x] URL pública abre/descarga el archivo en el navegador
-- [ ] Auto-mapeo sin filas: `{nombre_campo_file}_url` (ej. `your-cv` → `your_cv_url`)
-- [ ] Mapeo manual: `campo_file` → `cv_url` en filas repetibles
+- [x] Auto-mapeo sin filas: `{nombre_campo_file}_url` (ej. `your-cv` → `your_cv_url`)
+- [x] Mapeo manual: `campo_file` → `cv_url` en filas repetibles
 - [x] `{{var:attachments_all}}` — todas las URLs (una por línea) cuando hay archivos
 - [x] Envío **sin** archivo: correos siguen enviándose si la plantilla **no** exige variables de adjunto vacías
 - [ ] Notificación **HTML por defecto**: campo file muestra enlace clicable (no hash CF7)
@@ -146,7 +163,7 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 - [x] **Probar conexión** (formulario dedicado, no al guardar ajustes)
 - [x] Alta/actualización de contacto en lista configurada
 - [x] Autorespuesta con `template_id` y mismas variables que el envío
-- [ ] Comportamiento `on_existing_contact`: `update_properties` vs `skip`
+- [x] Comportamiento `on_existing_contact`: `update_properties` vs `skip`
 
 ---
 
@@ -154,14 +171,14 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 
 ### Idempotencia (5 minutos)
 
-- [ ] Mismo formulario + mismo email + mismos datos, doble envío en &lt; 5 min
-- [ ] Segundo envío: log `Skipped: submission already processed`
-- [ ] No duplicar contacto en lista ni autorespuestas
+- [x] Mismo formulario + mismo email + mismos datos, doble envío en &lt; 5 min
+- [x] Segundo envío: log `Skipped: submission already processed`
+- [x] No duplicar contacto en lista ni autorespuestas
 
 ### Rate limit
 
-- [ ] Con límites activos: segundo envío desde misma IP/email dentro del plazo → log de rate limit y sin acciones Mailjet
-- [ ] Con rate limit en **0** en staging: no falsos positivos en pruebas repetidas
+- [x] Con límites activos: segundo envío desde misma IP/email dentro del plazo → log de rate limit y sin acciones Mailjet
+- [x] Con rate limit en **0** en staging: no falsos positivos en pruebas repetidas
 
 ### Regresión admin
 
@@ -172,7 +189,7 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 ### Front (UX)
 
 - [x] Loader visible al enviar; botón no bloqueado antes de `wpcf7submitting`
-- [ ] Estados `wpcf7sent` / `wpcf7failed` restauran el botón
+- [x] Estados `wpcf7sent` / `wpcf7failed` restauran el botón
 
 ---
 
