@@ -355,7 +355,7 @@ class Cideapps_Cf7_Mailjet_API {
 					),
 					'TemplateID'       => (int) $template_id,
 					'TemplateLanguage' => true,
-					'Variables'        => array_map( 'sanitize_text_field', $variables ),
+					'Variables'        => $this->sanitize_template_variables( $variables ),
 				),
 			),
 		);
@@ -435,6 +435,26 @@ class Cideapps_Cf7_Mailjet_API {
 		$response = $this->make_request( $endpoint, 'POST', $email_data );
 
 		return $response;
+	}
+
+	/**
+	 * Sanitize template variables (preserve line breaks in message).
+	 *
+	 * @since 1.2.0
+	 * @param array $variables Template variables.
+	 * @return array
+	 */
+	private function sanitize_template_variables( $variables ) {
+		if ( ! is_array( $variables ) ) {
+			return array();
+		}
+
+		if ( class_exists( 'Cideapps_Cf7_Mailjet_Submission_Data' ) ) {
+			$builder = new Cideapps_Cf7_Mailjet_Submission_Data();
+			return $builder->sanitize_mailjet_variables( $variables );
+		}
+
+		return array_map( 'sanitize_text_field', $variables );
 	}
 
 	/**

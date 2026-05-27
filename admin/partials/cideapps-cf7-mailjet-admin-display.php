@@ -142,8 +142,13 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	if ( isset( $_POST['cideapps_cf7_mailjet_service_field'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_service_field', sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_service_field'] ) ) );
 	}
+	if ( isset( $_POST['cideapps_cf7_mailjet_message_field'] ) ) {
+		update_option( 'cideapps_cf7_mailjet_message_field', sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_message_field'] ) ) );
+	}
 	$service_send_label_value = isset( $_POST['cideapps_cf7_mailjet_service_send_label'] ) && $_POST['cideapps_cf7_mailjet_service_send_label'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_service_send_label', $service_send_label_value );
+	$enable_submission_metadata_value = isset( $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] ) && $_POST['cideapps_cf7_mailjet_enable_submission_metadata'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_enable_submission_metadata', $enable_submission_metadata_value );
 	$owner_notify_enabled_value = isset( $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] ) && $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_owner_notify_enabled', $owner_notify_enabled_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_owner_notify_to_email'] ) ) {
@@ -222,8 +227,11 @@ $email_field             = get_option( 'cideapps_cf7_mailjet_email_field', 'your
 $name_field              = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
 $phone_field             = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
 $service_field           = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
+$message_field           = get_option( 'cideapps_cf7_mailjet_message_field', 'your-message' );
 $service_send_label_raw  = get_option( 'cideapps_cf7_mailjet_service_send_label', 0 );
 $service_send_label      = ( $service_send_label_raw === 1 || $service_send_label_raw === '1' || $service_send_label_raw === true );
+$enable_submission_metadata_raw = get_option( 'cideapps_cf7_mailjet_enable_submission_metadata', 0 );
+$enable_submission_metadata     = ( $enable_submission_metadata_raw === 1 || $enable_submission_metadata_raw === '1' || $enable_submission_metadata_raw === true );
 $owner_notify_enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
 $owner_notify_enabled     = ( $owner_notify_enabled_raw === 1 || $owner_notify_enabled_raw === '1' || $owner_notify_enabled_raw === true );
 $owner_notify_to_email    = get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' );
@@ -441,6 +449,18 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 					</td>
 				</tr>
 				<tr>
+					<th scope="row">
+						<label for="cideapps_cf7_mailjet_message_field"><?php esc_html_e( 'Campo de Mensaje', 'cideapps-cf7-mailjet' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="cideapps_cf7_mailjet_message_field" name="cideapps_cf7_mailjet_message_field" value="<?php echo esc_attr( $message_field ); ?>" class="regular-text" />
+						<p class="description">
+							<?php esc_html_e( 'Nombre del campo de mensaje en CF7 (por defecto: your-message). En plantillas Mailjet usa:', 'cideapps-cf7-mailjet' ); ?>
+							<code>{{var:message}}</code>
+						</p>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row"><?php esc_html_e( 'Enviar Label del Servicio', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
@@ -448,6 +468,28 @@ $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' |
 							<?php esc_html_e( 'Enviar label del servicio (en vez del value) a Mailjet', 'cideapps-cf7-mailjet' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Si está activado, se enviará el label humano (ej: "Apps Móviles") en lugar del value (ej: "apps-moviles") al template de Mailjet.', 'cideapps-cf7-mailjet' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Metadata CF7 en Mailjet', 'cideapps-cf7-mailjet' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="cideapps_cf7_mailjet_enable_submission_metadata" name="cideapps_cf7_mailjet_enable_submission_metadata" value="1" <?php checked( $enable_submission_metadata, true ); ?> />
+							<?php esc_html_e( 'Incluir metadata automática de CF7 en variables Mailjet', 'cideapps-cf7-mailjet' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'Variables disponibles en plantillas:', 'cideapps-cf7-mailjet' ); ?>
+							<code>{{var:source_url}}</code>,
+							<code>{{var:source_page}}</code>,
+							<code>{{var:submitted_at}}</code>,
+							<code>{{var:user_agent}}</code>,
+							<code>{{var:remote_ip}}</code>,
+							<code>{{var:utm_source}}</code>,
+							<code>{{var:utm_campaign}}</code>,
+							<code>{{var:utm_medium}}</code>,
+							<code>{{var:utm_term}}</code>,
+							<code>{{var:utm_content}}</code>
+						</p>
 					</td>
 				</tr>
 				<tr>

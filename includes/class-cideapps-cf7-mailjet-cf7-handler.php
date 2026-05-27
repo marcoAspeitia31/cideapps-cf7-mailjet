@@ -73,14 +73,23 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	private $logger;
 
 	/**
+	 * Submission data builder.
+	 *
+	 * @since 1.2.0
+	 * @var Cideapps_Cf7_Mailjet_Submission_Data
+	 */
+	private $submission_data;
+
+	/**
 	 * Initialize the class
 	 *
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$this->mailjet_api = new Cideapps_Cf7_Mailjet_API();
-		$this->rate_limit  = new Cideapps_Cf7_Mailjet_Rate_Limit();
-		$this->logger      = new Cideapps_Cf7_Mailjet_Logger();
+		$this->mailjet_api     = new Cideapps_Cf7_Mailjet_API();
+		$this->rate_limit      = new Cideapps_Cf7_Mailjet_Rate_Limit();
+		$this->logger          = new Cideapps_Cf7_Mailjet_Logger();
+		$this->submission_data = new Cideapps_Cf7_Mailjet_Submission_Data();
 	}
 
 	/**
@@ -151,51 +160,15 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 			return;
 		}
 
-		$email_field   = get_option( 'cideapps_cf7_mailjet_email_field', 'your-email' );
-		$name_field    = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
-		$phone_field   = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
-		$service_field = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
+		$core_fields = $this->submission_data->extract_core_fields( $contact_form, $posted_data, $this );
+		$email       = $core_fields['email'];
+		$name        = $core_fields['name'];
+		$phone       = $core_fields['phone'];
+		$service     = $core_fields['service'];
+		$message     = $core_fields['message'];
 
-		$email = isset( $posted_data[ $email_field ] ) ? sanitize_email( $posted_data[ $email_field ] ) : '';
-		$name  = isset( $posted_data[ $name_field ] ) ? sanitize_text_field( $posted_data[ $name_field ] ) : '';
-		$phone = isset( $posted_data[ $phone_field ] ) ? sanitize_text_field( $posted_data[ $phone_field ] ) : '';
-
-		$service            = '';
-		$service_send_label = get_option( 'cideapps_cf7_mailjet_service_send_label', false );
-		$service_raw        = '';
-
-		if ( isset( $posted_data[ $service_field ] ) ) {
-			if ( is_array( $posted_data[ $service_field ] ) ) {
-				$service_items     = array();
-				$service_raw_items = array();
-
-				foreach ( $posted_data[ $service_field ] as $item ) {
-					$item_sanitized = sanitize_text_field( $item );
-					if ( ! empty( $item_sanitized ) ) {
-						$service_raw_items[] = $item_sanitized;
-
-						if ( $service_send_label ) {
-							$service_items[] = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $item_sanitized );
-						} else {
-							$service_items[] = $item_sanitized;
-						}
-					}
-				}
-
-				$service     = implode( ', ', $service_items );
-				$service_raw = implode( ', ', $service_raw_items );
-			} else {
-				$service     = sanitize_text_field( $posted_data[ $service_field ] );
-				$service_raw = $service;
-
-				if ( $service_send_label && ! empty( $service ) ) {
-					$service = $this->resolve_cf7_label_from_value( $contact_form, $service_field, $service );
-				}
-			}
-		}
-
-		if ( ! empty( $service_raw ) && $service !== $service_raw ) {
-			$this->logger->info( "Service field resolved: value(s) '{$service_raw}' -> label(s) '{$service}'" );
+		if ( ! empty( $core_fields['service_raw'] ) && $service !== $core_fields['service_raw'] ) {
+			$this->logger->info( "Service field resolved: value(s) '{$core_fields['service_raw']}' -> label(s) '{$service}'" );
 		}
 
 		if ( empty( $email ) || ! is_email( $email ) ) {
@@ -228,24 +201,9 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 
 		$this->logger->info( "Processing form submission for form ID {$form_id}, email: {$email}" );
 
-		$contact_properties = array();
-		if ( ! empty( $name ) ) {
-			$contact_properties['name'] = $name;
-		}
-		if ( ! empty( $phone ) ) {
-			$contact_properties['phone'] = $phone;
-		}
-		if ( ! empty( $service ) ) {
-			$contact_properties['service'] = $service;
-		}
-
-		$business_notification_variables = array(
-			'name'    => $name,
-			'email'   => $email,
-			'phone'   => $phone,
-			'service' => $service,
-			'form_id' => (string) $form_id,
-		);
+		$contact_properties            = $this->submission_data->build_contact_properties( $core_fields );
+		$template_variables            = $this->submission_data->build_template_variables( $core_fields, $form_id, $submission );
+		$business_notification_variables = $template_variables;
 
 		// 1) Business notification first (only for mailjet_only mode).
 		if ( self::DELIVERY_MODE_MAILJET_ONLY === $mode ) {
@@ -486,7 +444,7 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	 * @param    string               $submitted_value Submitted value (e.g., 'apps-moviles')
 	 * @return   string    Label if found, original value if not found
 	 */
-	private function resolve_cf7_label_from_value( $contact_form, $field_name, $submitted_value ) {
+	public function resolve_cf7_label_from_value( $contact_form, $field_name, $submitted_value ) {
 		if ( empty( $submitted_value ) ) {
 			return '';
 		}
