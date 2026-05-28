@@ -275,16 +275,9 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 	 * @return void
 	 */
 	private function send_business_notification( $contact_form, $posted_data, $lead_email, $variables, $submission = null ) {
-		$enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
-		$enabled     = ( $enabled_raw === 1 || $enabled_raw === '1' || $enabled_raw === true );
-		if ( ! $enabled ) {
-			$this->logger->info( 'Business notification disabled for mailjet_only mode.' );
-			return;
-		}
-
 		$to_email = sanitize_email( get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' ) );
 		if ( empty( $to_email ) || ! is_email( $to_email ) ) {
-			$this->logger->warning( 'Business notification enabled but destination email is missing or invalid.' );
+			$this->logger->warning( 'Business notification destination email is missing or invalid for mailjet_only mode.' );
 			return;
 		}
 
@@ -305,7 +298,11 @@ class Cideapps_Cf7_Mailjet_CF7_Handler {
 
 			$result = $this->mailjet_api->send_email( $to_email, $template_id, $variables, $from_email, $from_name, $lead_email );
 		} else {
-			$subject = get_option( 'cideapps_cf7_mailjet_owner_notify_subject', __( 'Nuevo lead desde formulario web', 'cideapps-cf7-mailjet' ) );
+			$subject = sanitize_text_field( (string) get_option( 'cideapps_cf7_mailjet_owner_notify_subject', __( 'Nuevo lead desde formulario web', 'cideapps-cf7-mailjet' ) ) );
+			if ( '' === trim( $subject ) ) {
+				$this->logger->warning( 'Business notification subject is required when mode is html_default (mailjet_only).' );
+				return;
+			}
 			$html    = $this->build_default_business_notification_html( $contact_form, $posted_data, $submission );
 
 			$result = $this->mailjet_api->send_html_email( $to_email, $subject, $html, $from_email, $from_name, $lead_email );

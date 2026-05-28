@@ -231,8 +231,6 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 		update_option( 'cideapps_cf7_mailjet_attachment_mappings', implode( "\n", $attachment_lines ) );
 	}
 
-	$owner_notify_enabled_value = isset( $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] ) && $_POST['cideapps_cf7_mailjet_owner_notify_enabled'] === '1' ? 1 : 0;
-	update_option( 'cideapps_cf7_mailjet_owner_notify_enabled', $owner_notify_enabled_value );
 	if ( isset( $_POST['cideapps_cf7_mailjet_owner_notify_to_email'] ) ) {
 		update_option( 'cideapps_cf7_mailjet_owner_notify_to_email', sanitize_email( wp_unslash( $_POST['cideapps_cf7_mailjet_owner_notify_to_email'] ) ) );
 	}
@@ -393,8 +391,6 @@ if ( empty( $attachment_mappings_rows ) ) {
 	);
 }
 
-$owner_notify_enabled_raw = get_option( 'cideapps_cf7_mailjet_owner_notify_enabled', 0 );
-$owner_notify_enabled     = ( $owner_notify_enabled_raw === 1 || $owner_notify_enabled_raw === '1' || $owner_notify_enabled_raw === true );
 $owner_notify_to_email    = get_option( 'cideapps_cf7_mailjet_owner_notify_to_email', '' );
 $owner_notify_mode        = get_option( 'cideapps_cf7_mailjet_owner_notify_mode', 'template' );
 if ( ! in_array( $owner_notify_mode, array( 'template', 'html_default' ), true ) ) {
@@ -559,18 +555,18 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 										<strong><?php echo esc_html( $form_title ); ?></strong> (ID: <?php echo esc_html( $form_id_int ); ?>)
 									</label>
 									<label for="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" style="display:block; margin-left: 24px;">
-										<?php esc_html_e( 'Modo de envío:', 'cideapps-cf7-mailjet' ); ?>
+										<?php esc_html_e( 'Canal de notificación interna:', 'cideapps-cf7-mailjet' ); ?>
 										<select id="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" style="margin-left: 6px;">
-											<option value="cf7_mail" <?php selected( $current_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'CF7 + Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
-											<option value="mailjet_only" <?php selected( $current_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Solo Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
+											<option value="cf7_mail" <?php selected( $current_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' ); ?></option>
+											<option value="mailjet_only" <?php selected( $current_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Mailjet API', 'cideapps-cf7-mailjet' ); ?></option>
 										</select>
 									</label>
 									<p class="description" style="margin: 6px 0 0 24px;">
-										<strong><?php esc_html_e( 'CF7 + Mailjet:', 'cideapps-cf7-mailjet' ); ?></strong>
-										<?php esc_html_e( 'Contact Form 7 envía su correo nativo y después se ejecuta Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+										<strong><?php esc_html_e( 'Email nativo de Contact Form 7:', 'cideapps-cf7-mailjet' ); ?></strong>
+										<?php esc_html_e( 'Contact Form 7 envía la notificación interna usando su pestaña Mail.', 'cideapps-cf7-mailjet' ); ?>
 										<br />
-										<strong><?php esc_html_e( 'Solo Mailjet:', 'cideapps-cf7-mailjet' ); ?></strong>
-										<?php esc_html_e( 'Contact Form 7 omite su correo nativo y el plugin procesa Mailjet vía API. Recomendado para VPS con SMTP bloqueado.', 'cideapps-cf7-mailjet' ); ?>
+										<strong><?php esc_html_e( 'Mailjet API:', 'cideapps-cf7-mailjet' ); ?></strong>
+										<?php esc_html_e( 'Contact Form 7 omite su correo nativo y la notificación interna se envía por Mailjet API. Recomendado para VPS con SMTP bloqueado.', 'cideapps-cf7-mailjet' ); ?>
 									</p>
 								</div>
 							<?php endforeach; ?>
@@ -762,16 +758,6 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 						<p class="description">
 							<?php esc_html_e( 'Borra archivos antiguos solo en uploads/cideapps-cf7-mailjet/ (cron diario). 0 = desactivado (no borra, sin cron). Recomendado: 30.', 'cideapps-cf7-mailjet' ); ?>
 						</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Notificación al Negocio (Solo Mailjet)', 'cideapps-cf7-mailjet' ); ?></th>
-					<td>
-						<label>
-							<input type="checkbox" id="cideapps_cf7_mailjet_owner_notify_enabled" name="cideapps_cf7_mailjet_owner_notify_enabled" value="1" <?php checked( $owner_notify_enabled, true ); ?> />
-							<?php esc_html_e( 'Enviar correo de notificación al negocio cuando el formulario está en modo "Solo Mailjet".', 'cideapps-cf7-mailjet' ); ?>
-						</label>
-						<p class="description"><?php esc_html_e( 'Esto reemplaza el correo nativo de CF7 para modo Solo Mailjet.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
