@@ -12,6 +12,7 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 | **1** | Limpieza automática de adjuntos (cron + retención) | Completada | `PRUEBAS-MANUALES.md` §11 |
 | **2** | `uninstall.php` limpio (options, transients, cron; uploads opt-in) | Completada | `PRUEBAS-MANUALES.md` §12 |
 | **3** | Guía de despliegue por cliente + `CHANGELOG.md` | Completada (docs) | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` |
+| **3.1** | Refactor: simplificar canal de notificación interna | Completada | `PRUEBAS-MANUALES.md` §14 |
 | **4** | Propiedades avanzadas en lista Mailjet (código) | Pendiente | §1 abajo |
 
 Tag de release del sprint (hasta Fase 2 en código): **`v1.3.2`**.
@@ -155,7 +156,8 @@ Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplat
 
 1. **Etapa v1.3.1:** cerrada (tag `v1.3.1`).  
 2. **Sprint mantenimiento:** Fases 1–3 **completadas** (código Fase 1–2 + docs Fase 3); QA funcional en `PRUEBAS-MANUALES.md` §11–12.  
-3. **Siguiente:** Fase 4 propiedades Mailjet (solo código, un commit / validación).  
-4. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
+3. **Refactor previo a Fase 4:** canal de notificación interna simplificado (sin checkbox redundante) — validado en `PRUEBAS-MANUALES.md` §14.  
+4. **Siguiente:** Fase 4 propiedades Mailjet (solo código, un commit / validación).  
+5. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
 
 Para retomar trabajo, abrir este archivo y elegir ítems por prioridad con el cliente o product owner.

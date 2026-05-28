@@ -5,6 +5,24 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.3] - 2026-05-28
+
+### Changed
+
+- Refactor de UX y semántica en CF7: `Modo de envío` pasa a `Canal de notificación interna`.
+- Etiquetas visibles actualizadas:
+  - `CF7 + Mailjet` → `Email nativo de Contact Form 7`
+  - `Solo Mailjet` → `Mailjet API`
+- Se elimina el checkbox redundante `Notificación al Negocio (Solo Mailjet)` de la UI.
+- En runtime, cuando el canal es `mailjet_only`, la notificación interna por Mailjet se ejecuta sin depender de `owner_notify_enabled`.
+
+### Security
+
+- Se agregan validaciones y warnings explícitos para datos mínimos de notificación interna en `mailjet_only`:
+  - email destino negocio requerido
+  - template ID requerido cuando modo = `template`
+  - asunto requerido cuando modo = `html_default`
+
 ## [1.3.2] - 2026-05-27
 
 ### Added
