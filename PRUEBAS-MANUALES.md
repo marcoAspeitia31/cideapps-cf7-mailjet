@@ -4,7 +4,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 **Versión plugin probada:** 1.3.1 + sprint mantenimiento (commit `817de74`)  
 **Última actualización:** mayo 2026  
-**Estado:** Etapa v1.3.1 **completada** (staging + producción). **Fase 1** del sprint de mantenimiento **validada** (ver §11). Siguiente: Fase 2 (`ACTIVIDADES-FUTURAS.md`).
+**Estado:** Etapa v1.3.1 **completada** (staging + producción). **Fase 1** y **Fase 2** del sprint de mantenimiento **validadas** (ver §11 y §12). Siguiente: Fase 3 (`ACTIVIDADES-FUTURAS.md`).
 
 ---
 
@@ -39,6 +39,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Producción IONOS VPS (SMTP 25 bloqueado) | OK | Solo **Solo Mailjet**; sin correo CF7 nativo |
 | Producción cPanel | OK | **CF7 + Mailjet** y **Solo Mailjet** |
 | Fase 1 — Limpieza adjuntos (cron retención) | OK | Commit `817de74`; staging local mayo 2026 (§11) |
+| Fase 2 — Uninstall limpio y seguro | OK | Commit de código Fase 2; validado en servidor de pruebas mayo 2026 (§12) |
 
 ---
 
@@ -331,7 +332,42 @@ Resultados observados:
 - [x] Envío CF7 con adjuntos (copia a `uploads/cideapps-cf7-mailjet/`) — sin cambios en handler/API en este commit
 - [x] Modos `cf7_mail` y `mailjet_only` — sin cambios en este commit
 
-**Fase 2 pendiente:** `uninstall.php` limpio (`ACTIVIDADES-FUTURAS.md` §3).
+**Fase 2 completada:** uninstall limpio validado (ver §12).
+
+---
+
+## 12. Sprint mantenimiento — Fase 2: uninstall limpio
+
+**Feature:** desinstalación segura (options, transients y cron del plugin), con borrado opcional de uploads mediante checkbox opt-in.  
+**Commit (código):** `feat(uninstall): clean plugin options on uninstall`  
+**Entorno:** servidor de pruebas independiente, mayo 2026  
+**Resultado:** **validación exitosa**.
+
+### Escenario probado (con opt-in de uploads activado)
+
+Estado previo:
+
+- [x] Option presente: `wp option get cideapps_cf7_mailjet_public_key` devuelve valor
+- [x] Cron presente: `wp cron event list | grep cideapps` muestra `cideapps_cf7_mailjet_upload_cleanup`
+- [x] Carpeta de plugin en uploads presente: `wp-content/uploads/cideapps-cf7-mailjet/`
+
+Resultado tras desinstalar:
+
+- [x] Option eliminada: `Error: Could not get ... option`
+- [x] Cron eliminado: `wp cron event list | grep cideapps` sin resultados
+- [x] Uploads eliminados por opt-in: `ls .../uploads/cideapps-cf7-mailjet/` → `No such file or directory`
+
+### Reglas validadas de seguridad
+
+- [x] `uninstall.php` protegido con `if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) { exit; }`
+- [x] Whitelist explícita de options (`cideapps_cf7_mailjet_*`) en clase uninstall
+- [x] Transients solo por prefijos exactos (`cf7_mj_email_`, `cf7_mj_ip_`, `cf7_mj_proc_`)
+- [x] Borrado de uploads limitado al directorio `uploads/cideapps-cf7-mailjet/`
+- [x] Borrado de uploads por defecto OFF; solo se ejecuta con checkbox activado
+
+### Nota operativa QA
+
+- [x] Esta validación se ejecutó en sitio de pruebas separado para evitar borrar el plugin del entorno de desarrollo local.
 
 ---
 
