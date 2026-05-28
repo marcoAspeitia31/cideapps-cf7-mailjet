@@ -31,12 +31,10 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 
 **Beneficio:** segmentación y trazabilidad en Mailjet sin depender solo del correo.
 
-### 2. Limpieza de archivos subidos
+### 2. Limpieza de archivos subidos — **hecho (Fase 1, mayo 2026)**
 
-Los adjuntos quedan en `uploads/cideapps-cf7-mailjet/` sin caducidad.
-
-- Cron que borre archivos mayores a X días
-- Opción en admin: días de retención (0 = no borrar)
+- Commit: `817de74` — cron `cideapps_cf7_mailjet_upload_cleanup`, option `cideapps_cf7_mailjet_attachment_retention_days`
+- QA manual: `PRUEBAS-MANUALES.md` §11 (validación exitosa en staging local)
 
 **Beneficio:** evita llenar disco en sitios con muchos formularios con file.
 
@@ -147,8 +145,9 @@ Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplat
 
 ## Resumen ejecutivo
 
-1. **Cerrar etapa:** commit/tag `1.3.1`, changelog breve, despliegue en repos de clientes.  
-2. **Siguiente sprint corto (si hay tiempo):** limpieza de uploads + uninstall + guía cliente.  
-3. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
+1. **Etapa v1.3.1:** cerrada (tag `v1.3.1`).  
+2. **Sprint mantenimiento:** Fase 1 (limpieza uploads) **hecha y validada** — ver `PRUEBAS-MANUALES.md` §11.  
+3. **Siguiente:** Fase 2 uninstall → Fase 3 guía cliente → Fase 4 propiedades Mailjet (una fase / commit / validación).  
+4. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
 
 Para retomar trabajo, abrir este archivo y elegir ítems por prioridad con el cliente o product owner.
