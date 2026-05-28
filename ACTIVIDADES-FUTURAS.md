@@ -38,14 +38,12 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 
 **Beneficio:** evita llenar disco en sitios con muchos formularios con file.
 
-### 3. `uninstall.php` y desinstalación limpia
+### 3. `uninstall.php` y desinstalación limpia — **hecho (Fase 2, mayo 2026)**
 
-Hoy el uninstall del boilerplate está vacío.
+- Commit: `feat(uninstall): clean plugin options on uninstall`
+- QA manual: `PRUEBAS-MANUALES.md` §12 (validación exitosa en servidor de pruebas)
 
-- Borrar `wp_options` del plugin (lista configurable)
-- Opción: borrar carpeta `uploads/cideapps-cf7-mailjet/` al desinstalar
-
-**Beneficio:** sitios limpios al quitar el plugin en agencias.
+**Beneficio:** sitios limpios al quitar el plugin en agencias, sin tocar datos ajenos.
 
 ### 4. Guía de despliegue por cliente
 
@@ -146,8 +144,8 @@ Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplat
 ## Resumen ejecutivo
 
 1. **Etapa v1.3.1:** cerrada (tag `v1.3.1`).  
-2. **Sprint mantenimiento:** Fase 1 (limpieza uploads) **hecha y validada** — ver `PRUEBAS-MANUALES.md` §11.  
-3. **Siguiente:** Fase 2 uninstall → Fase 3 guía cliente → Fase 4 propiedades Mailjet (una fase / commit / validación).  
+2. **Sprint mantenimiento:** Fase 1 (limpieza uploads) y Fase 2 (uninstall limpio) **hechas y validadas** — ver `PRUEBAS-MANUALES.md` §11 y §12.  
+3. **Siguiente:** Fase 3 guía cliente → Fase 4 propiedades Mailjet (una fase / commit / validación).  
 4. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
 
 Para retomar trabajo, abrir este archivo y elegir ítems por prioridad con el cliente o product owner.
