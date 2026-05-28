@@ -2,9 +2,9 @@
 
 Documento de validación manual del plugin. Incluye pruebas del plan original y las realizadas durante el desarrollo (modos de envío, notificación al negocio, variables Mailjet, metadata, mapeos dinámicos y adjuntos).
 
-**Versión plugin probada:** 1.3.1 + sprint mantenimiento (commit `817de74`)  
+**Versión plugin probada:** 1.3.2 (tag `v1.3.2`)  
 **Última actualización:** mayo 2026  
-**Estado:** Etapa v1.3.1 **completada** (staging + producción). **Fase 1** y **Fase 2** del sprint de mantenimiento **validadas** (ver §11 y §12). Siguiente: Fase 3 (`ACTIVIDADES-FUTURAS.md`).
+**Estado:** Etapa v1.3.1 **completada** (staging + producción). Sprint mantenimiento: **Fase 1** y **Fase 2** validadas en QA (§11–12); **Fase 3** documentación en `docs/GUIA-DESPLIEGUE-CLIENTE.md` (§13). Siguiente: **Fase 4** código (`ACTIVIDADES-FUTURAS.md`).
 
 ---
 
@@ -40,6 +40,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Producción cPanel | OK | **CF7 + Mailjet** y **Solo Mailjet** |
 | Fase 1 — Limpieza adjuntos (cron retención) | OK | Commit `817de74`; staging local mayo 2026 (§11) |
 | Fase 2 — Uninstall limpio y seguro | OK | Commit de código Fase 2; validado en servidor de pruebas mayo 2026 (§12) |
+| Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
 
 ---
 
@@ -368,6 +369,37 @@ Resultado tras desinstalar:
 ### Nota operativa QA
 
 - [x] Esta validación se ejecutó en sitio de pruebas separado para evitar borrar el plugin del entorno de desarrollo local.
+
+---
+
+## 13. Sprint mantenimiento — Fase 3: documentación de despliegue
+
+**Alcance:** solo documentación (sin cambios PHP).  
+**Entregables:** `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md`.  
+**Release de referencia:** `v1.3.2`.
+
+Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklist operativo para instalar en un sitio cliente está en la guía de despliegue.
+
+### Contenido de la guía (revisión editorial)
+
+- [x] Requisitos previos (WordPress, CF7, Mailjet, DNS, accesos).
+- [x] DNS: SPF (único registro), DKIM, DMARC.
+- [x] Mailjet: API Keys, sender, lista, plantillas, variables.
+- [x] Variables mínimas y opcionales + fallbacks.
+- [x] Modos `cf7_mail` y `mailjet_only` (incl. IONOS/VPS).
+- [x] Pasos de configuración WordPress (retención adjuntos, uninstall opt-in).
+- [x] Checklist de despliegue pre-producción.
+- [x] Troubleshooting común.
+
+### Dónde probar funcionalidad
+
+| Necesidad | Documento |
+|-----------|-------------|
+| QA cron retención / uninstall | §11 y §12 de este archivo |
+| Instalar en cliente nuevo | `docs/GUIA-DESPLIEGUE-CLIENTE.md` §9 |
+| Cambios por versión | `CHANGELOG.md` |
+
+**Fase 4 pendiente:** propiedades avanzadas Mailjet en código (`ACTIVIDADES-FUTURAS.md` §1).
 
 ---
 

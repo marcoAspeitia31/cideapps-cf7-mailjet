@@ -5,6 +5,19 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 
 ---
 
+## Sprint mantenimiento — mapa de fases
+
+| Fase | Alcance | Estado | Referencia |
+|------|---------|--------|------------|
+| **1** | Limpieza automática de adjuntos (cron + retención) | Completada | `PRUEBAS-MANUALES.md` §11 |
+| **2** | `uninstall.php` limpio (options, transients, cron; uploads opt-in) | Completada | `PRUEBAS-MANUALES.md` §12 |
+| **3** | Guía de despliegue por cliente + `CHANGELOG.md` | Completada (docs) | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` |
+| **4** | Propiedades avanzadas en lista Mailjet (código) | Pendiente | §1 abajo |
+
+Tag de release del sprint (hasta Fase 2 en código): **`v1.3.2`**.
+
+---
+
 ## Estado actual
 
 | Ámbito | Estado |
@@ -21,7 +34,7 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 
 ## Prioridad alta (recomendado para operación en clientes)
 
-### 1. Propiedades extra en lista Mailjet
+### 1. Propiedades extra en lista Mailjet — **pendiente (Fase 4)**
 
 `DESARROLLO.md` menciona `source`, `form_id`, `created_at` en contactos; hoy solo se envían `name`, `phone`, `service`.
 
@@ -45,14 +58,11 @@ Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitec
 
 **Beneficio:** sitios limpios al quitar el plugin en agencias, sin tocar datos ajenos.
 
-### 4. Guía de despliegue por cliente
+### 4. Guía de despliegue por cliente — **hecho (Fase 3, mayo 2026)**
 
-README o wiki interna (no solo `DESARROLLO.md`):
-
-- Checklist Mailjet (dominio, API keys, templates)
-- Cuándo usar **Solo Mailjet** vs **CF7 + Mailjet**
-- Variables mínimas en plantilla + `{{var:clave:""}}`
-- Ejemplo IONOS (SMTP 25 cerrado)
+- Documento: `docs/GUIA-DESPLIEGUE-CLIENTE.md`
+- Historial de versiones: `CHANGELOG.md`
+- Checklist de despliegue en la guía (no duplicar en `PRUEBAS-MANUALES.md`)
 
 **Beneficio:** reutilización multi-sitio sin releer el hilo de desarrollo.
 
@@ -125,8 +135,8 @@ Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplat
 
 | Actividad | Cuándo |
 |-----------|--------|
-| Tag git `1.3.1` (o siguiente) en remoto | Al cerrar etapa |
-| Changelog (`CHANGELOG.md`) | Cada release |
+| Tag git `v1.3.2` en remoto | Hecho (sprint Fase 1–2) |
+| Changelog (`CHANGELOG.md`) | Iniciado en Fase 3; actualizar en cada release |
 | Revisar compatibilidad CF7 / WP al actualizar dependencias | Trimestral o antes de deploy cliente |
 | Revisar límites API Mailjet (variables, tamaño) | Si plantillas crecen mucho |
 
@@ -144,8 +154,8 @@ Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplat
 ## Resumen ejecutivo
 
 1. **Etapa v1.3.1:** cerrada (tag `v1.3.1`).  
-2. **Sprint mantenimiento:** Fase 1 (limpieza uploads) y Fase 2 (uninstall limpio) **hechas y validadas** — ver `PRUEBAS-MANUALES.md` §11 y §12.  
-3. **Siguiente:** Fase 3 guía cliente → Fase 4 propiedades Mailjet (una fase / commit / validación).  
+2. **Sprint mantenimiento:** Fases 1–3 **completadas** (código Fase 1–2 + docs Fase 3); QA funcional en `PRUEBAS-MANUALES.md` §11–12.  
+3. **Siguiente:** Fase 4 propiedades Mailjet (solo código, un commit / validación).  
 4. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
 
 Para retomar trabajo, abrir este archivo y elegir ítems por prioridad con el cliente o product owner.
