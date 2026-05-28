@@ -177,7 +177,7 @@ Regla práctica: toda variable que **no siempre** se envía debe llevar `:"valor
 
 Configuración por formulario en **Ajustes → CF7 Mailjet → CF7**.
 
-### `cf7_mail` — CF7 + Mailjet
+### `cf7_mail` — Email nativo de Contact Form 7
 
 - Contact Form 7 envía su correo nativo (`wp_mail` / SMTP del hosting).
 - Después, el plugin ejecuta lista Mailjet y autorespuesta (según ajustes).
@@ -188,7 +188,7 @@ Configuración por formulario en **Ajustes → CF7 Mailjet → CF7**.
 - Existe SMTP bien configurado (plugin SMTP, cPanel, etc.).
 - Se quiere conservar el flujo de la pestaña **Mail** de CF7.
 
-### `mailjet_only` — Solo Mailjet
+### `mailjet_only` — Mailjet API
 
 - CF7 **no** envía mail nativo (`wpcf7_skip_mail`).
 - El plugin envía por API: notificación al negocio (si está activa) → lista → autorespuesta.
@@ -213,9 +213,9 @@ Orden sugerido:
 4. **Lista:** habilitar + List ID + política contacto existente.
 5. **CF7 — Formularios:** marcar formularios habilitados.
 6. **CF7 — Campos:** mapear `your-email`, `your-name`, etc.
-7. **CF7 — Modo de envío** por formulario: `cf7_mail` o `mailjet_only`.
+7. **CF7 — Canal de notificación interna** por formulario: `cf7_mail` o `mailjet_only`.
 8. **Metadata / dinámicos / adjuntos:** según necesidad del cliente.
-9. **Notificación al negocio:** solo relevante en `mailjet_only`.
+9. **Notificación al negocio:** se configura para canal `mailjet_only` (sin checkbox adicional de activación).
 10. **Seguridad:** rate limits (recomendado en producción; `0` en staging para pruebas).
 11. **Seguridad — Retención de adjuntos:** días en `uploads/cideapps-cf7-mailjet/` (`0` = no borrar; `30` recomendado).
 12. **Seguridad — Desinstalación:** checkbox borrar uploads **desmarcado** por defecto; activar solo si el cliente lo solicita.
@@ -254,7 +254,7 @@ Marcar antes de dar por cerrado el sitio:
 | Problema | Qué revisar |
 |----------|-------------|
 | CF7 muestra `mail_sent_ng` en VPS | Cambiar a **Solo Mailjet**; SMTP no requerido |
-| SMTP bloqueado en VPS / IONOS | Modo `mailjet_only`; HTTPS a `api.mailjet.com` |
+| SMTP bloqueado en VPS / IONOS | Canal `mailjet_only`; HTTPS a `api.mailjet.com` |
 | Mailjet *blocked* / template language | Template ID correcto; idioma de plantilla = API |
 | Variables faltantes en template | Payload vs plantilla; usar `{{var:x:""}}` |
 | Botones WhatsApp no reemplazan URL | Mapeo dinámico + fallback en plantilla |

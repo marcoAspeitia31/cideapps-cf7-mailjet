@@ -100,16 +100,16 @@ wpcf7_skip_mail   // maybe_skip_cf7_mail — solo si modo mailjet_only
 wpcf7_mail_sent   // handle_form_submission → process_submission()
 ```
 
-### Modos de envío por formulario
+### Canal de notificación interna por formulario
 
-| Modo | Comportamiento |
+| Canal (valor interno) | Comportamiento |
 |------|----------------|
-| `cf7_mail` (default) | CF7 envía correo nativo (`wp_mail`). Si tiene éxito, corre Mailjet. |
-| `mailjet_only` | `wpcf7_skip_mail` omite correo CF7. CF7 marca `mail_sent` y corre Mailjet vía HTTPS API. |
+| `cf7_mail` (default) | **Email nativo de Contact Form 7**: CF7 envía correo nativo (`wp_mail`). Si tiene éxito, corre Mailjet para módulos independientes. |
+| `mailjet_only` | **Mailjet API**: `wpcf7_skip_mail` omite correo CF7. CF7 marca `mail_sent` y corre Mailjet vía HTTPS API. |
 
 **Limitación en `mailjet_only`:** la pestaña Mail de CF7 no notifica al administrador.
 
-**Notificación administrativa:** implementada en modo `mailjet_only` (plantilla Mailjet o HTML por defecto; Reply-To = email del lead desde v1.3.1).
+**Notificación administrativa:** en canal `mailjet_only` se envía por Mailjet (plantilla Mailjet o HTML por defecto; Reply-To = email del lead desde v1.3.1). Desde v1.3.3 ya no depende de checkbox adicional de activación.
 
 ### Flujo (`process_submission`):
 
@@ -122,6 +122,10 @@ wpcf7_mail_sent   // handle_form_submission → process_submission()
 7. Ejecutar acciones Mailjet:
    - **mailjet_only:** (1) notificación negocio → (2) lista → (3) autorespuesta
    - **cf7_mail:** lista + autorespuesta (correo CF7 ya enviado)
+
+**Nota de separación de responsabilidades (v1.3.3):**
+- El canal solo define **quién envía la notificación interna**.
+- Lista, autorespuesta, metadata y adjuntos permanecen como módulos independientes (según sus propios toggles).
 
 ### Variables Mailjet (`{{var:clave}}`)
 

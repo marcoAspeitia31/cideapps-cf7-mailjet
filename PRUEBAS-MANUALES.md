@@ -36,28 +36,29 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Reply-To notificación (template) | OK (v1.3.1) | Reply-To = email del lead |
 | form_id, UTM, HTML file links, sin correo CF7 en mailjet_only | OK | Validado en staging |
 | Mail-tags especiales (`[_remote_ip]`, etc.) | OK | Mapeo dinámico + plantilla Mailjet |
-| Producción IONOS VPS (SMTP 25 bloqueado) | OK | Solo **Solo Mailjet**; sin correo CF7 nativo |
-| Producción cPanel | OK | **CF7 + Mailjet** y **Solo Mailjet** |
+| Producción IONOS VPS (SMTP 25 bloqueado) | OK | Solo canal **Mailjet API**; sin correo CF7 nativo |
+| Producción cPanel | OK | **Email nativo CF7** y **Mailjet API** |
 | Fase 1 — Limpieza adjuntos (cron retención) | OK | Commit `817de74`; staging local mayo 2026 (§11) |
 | Fase 2 — Uninstall limpio y seguro | OK | Commit de código Fase 2; validado en servidor de pruebas mayo 2026 (§12) |
 | Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
+| Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
 
 ---
 
 ## 1. Modos de envío
 
-### 1.1 Modo `cf7_mail` (CF7 + Mailjet)
+### 1.1 Canal `cf7_mail` (Email nativo de Contact Form 7)
 
-- [x] Formulario con modo **CF7 + Mailjet**
+- [x] Formulario con canal **Email nativo de Contact Form 7**
 - [x] Con SMTP/`wp_mail` funcionando: mensaje de éxito en front
 - [x] Contacto agregado a Mailjet (si lista habilitada)
 - [x] Autorespuesta recibida (si habilitada)
 - [x] Log: `Delivery mode for form {id}: cf7_mail`
 - [x] Log: `wpcf7_skip_mail applied: no`
 
-### 1.2 Modo `mailjet_only` (VPS / SMTP bloqueado)
+### 1.2 Canal `mailjet_only` (Mailjet API)
 
-- [x] Formulario con modo **Solo Mailjet**
+- [x] Formulario con canal **Mailjet API**
 - [x] Sin depender de SMTP: mensaje de **éxito** en front (no `mail_sent_ng` / `wpcf7mailfailed`)
 - [x] Contacto agregado a Mailjet (si lista habilitada)
 - [x] Autorespuesta recibida por Mailjet (si habilitada)
@@ -74,9 +75,8 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 ---
 
-## 2. Notificación al negocio (solo `mailjet_only`)
+## 2. Notificación al negocio (canal `mailjet_only`)
 
-- [x] Checkbox **Notificación al Negocio** activo
 - [x] Email destino negocio configurado y válido
 - [x] Modo **Template ID de Mailjet**: correo recibido con variables correctas
 - [x] Modo **HTML por defecto del plugin**: correo recibido con tabla de campos
@@ -252,10 +252,10 @@ Relacionado con §11. Requiere commit `feat(attachment-retention): …` (`817de7
 
 ### VPS IONOS (puerto SMTP 25 bloqueado)
 
-Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo fallaría sin relay. Usar **Solo Mailjet**.
+Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo fallaría sin relay. Usar canal **Mailjet API**.
 
 - [x] HTTPS saliente a `api.mailjet.com` disponible
-- [x] Formulario en producción con **Solo Mailjet**
+- [x] Formulario en producción con canal **Mailjet API**
 - [x] Mensaje de éxito en front sin `mail_sent_ng`
 - [x] Notificación al negocio recibida en inbox real
 - [x] Autorespuesta y lista Mailjet operativas
@@ -264,8 +264,8 @@ Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo f
 
 ### cPanel (SMTP / `wp_mail` disponible)
 
-- [x] Modo **CF7 + Mailjet**: correo CF7 + acciones Mailjet
-- [x] Modo **Solo Mailjet**: mismo comportamiento que en staging
+- [x] Canal **Email nativo de Contact Form 7**: correo CF7 + acciones Mailjet
+- [x] Canal **Mailjet API**: mismo comportamiento que en staging
 
 ---
 
@@ -273,7 +273,7 @@ Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo f
 
 | Síntoma | Qué revisar |
 |---------|-------------|
-| CF7 `mail_sent_ng` en VPS | Modo **Solo Mailjet**; SMTP no requerido |
+| CF7 `mail_sent_ng` en VPS | Canal **Mailjet API**; SMTP no requerido |
 | No llega notificación al negocio | Checkbox activo, email destino, template ID; logs plugin |
 | Mailjet *blocked* / sin correo | Variables en plantilla que no van en API; usar `{{var:x:""}}` o quitar |
 | `{{var:message}}` vacío | `message_field` = nombre real del campo CF7 |
@@ -400,6 +400,39 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 | Cambios por versión | `CHANGELOG.md` |
 
 **Fase 4 pendiente:** propiedades avanzadas Mailjet en código (`ACTIVIDADES-FUTURAS.md` §1).
+
+---
+
+## 14. Refactor prioritario — canal de notificación interna
+
+**Alcance:** simplificar UI y runtime del canal de notificación interna (sin tocar lista/autorespuesta/metadata/adjuntos).  
+**Resultado:** **validación exitosa**.
+
+### Cambios funcionales validados
+
+- [x] UI renombrada: `Modo de envío` → `Canal de notificación interna`
+- [x] Etiquetas:
+  - `CF7 + Mailjet` → `Email nativo de Contact Form 7`
+  - `Solo Mailjet` → `Mailjet API`
+- [x] Checkbox eliminado de UI: `Notificación al Negocio (Solo Mailjet)`
+- [x] En runtime, con canal `mailjet_only`, la notificación interna por Mailjet ya no depende de `owner_notify_enabled`
+- [x] Campos de configuración mantenidos:
+  - `Email destino negocio`
+  - `Modo de notificación negocio`
+  - `Template ID negocio`
+  - `Asunto (HTML por defecto)`
+
+### Validaciones mínimas en `mailjet_only`
+
+- [x] Email destino faltante/inválido → warning claro
+- [x] Modo template sin template ID → warning claro
+- [x] Modo html_default sin asunto → warning claro
+- [x] Envío válido con datos completos → notificación al negocio enviada
+
+### Regresión controlada
+
+- [x] Canal `cf7_mail` no dispara notificación interna por Mailjet
+- [x] Lista, autorespuesta, metadata y adjuntos mantienen comportamiento
 
 ---
 
