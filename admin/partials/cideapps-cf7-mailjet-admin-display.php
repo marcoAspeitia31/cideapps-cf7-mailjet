@@ -258,6 +258,9 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	$debug_logs_value = isset( $_POST['cideapps_cf7_mailjet_debug_logs'] ) && $_POST['cideapps_cf7_mailjet_debug_logs'] === '1' ? 1 : 0;
 	update_option( 'cideapps_cf7_mailjet_debug_logs', $debug_logs_value );
 
+	$uninstall_delete_uploads_value = isset( $_POST['cideapps_cf7_mailjet_uninstall_delete_uploads'] ) && $_POST['cideapps_cf7_mailjet_uninstall_delete_uploads'] === '1' ? 1 : 0;
+	update_option( 'cideapps_cf7_mailjet_uninstall_delete_uploads', $uninstall_delete_uploads_value );
+
 	if ( isset( $_POST['cideapps_cf7_mailjet_attachment_retention_days'] ) ) {
 		$retention_days = max( 0, min( 3650, (int) $_POST['cideapps_cf7_mailjet_attachment_retention_days'] ) );
 		update_option( Cideapps_Cf7_Mailjet_Upload_Cleanup::OPTION_RETENTION_DAYS, $retention_days );
@@ -403,6 +406,8 @@ $rate_limit_email_minutes = get_option( 'cideapps_cf7_mailjet_rate_limit_email_m
 $rate_limit_ip_minutes    = get_option( 'cideapps_cf7_mailjet_rate_limit_ip_minutes', 10 );
 $debug_logs_raw           = get_option( 'cideapps_cf7_mailjet_debug_logs', 0 );
 $debug_logs               = ( $debug_logs_raw === 1 || $debug_logs_raw === '1' || $debug_logs_raw === true );
+$uninstall_delete_uploads_raw = get_option( 'cideapps_cf7_mailjet_uninstall_delete_uploads', 0 );
+$uninstall_delete_uploads     = ( $uninstall_delete_uploads_raw === 1 || $uninstall_delete_uploads_raw === '1' || $uninstall_delete_uploads_raw === true );
 if ( ! class_exists( 'Cideapps_Cf7_Mailjet_Upload_Cleanup' ) ) {
 	require_once dirname( dirname( dirname( __FILE__ ) ) ) . '/includes/class-cideapps-cf7-mailjet-upload-cleanup.php';
 }
@@ -838,6 +843,16 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, true ); ?> />
 							<?php esc_html_e( 'Habilitar logs de depuración (usar error_log de PHP)', 'cideapps-cf7-mailjet' ); ?>
 						</label>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Desinstalación', 'cideapps-cf7-mailjet' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="cideapps_cf7_mailjet_uninstall_delete_uploads" name="cideapps_cf7_mailjet_uninstall_delete_uploads" value="1" <?php checked( $uninstall_delete_uploads, true ); ?> />
+							<?php esc_html_e( 'Al desinstalar el plugin, eliminar también la carpeta uploads/cideapps-cf7-mailjet/', 'cideapps-cf7-mailjet' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Desactivado por defecto. Solo aplica al eliminar el plugin por completo, no al desactivarlo.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 			</table>
