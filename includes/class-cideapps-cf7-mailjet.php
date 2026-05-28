@@ -78,7 +78,18 @@ class Cideapps_Cf7_Mailjet {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_cron_hooks();
 
+	}
+
+	/**
+	 * Register WP-Cron hook for upload cleanup (scheduling only on activate / admin save).
+	 *
+	 * @since 1.4.0
+	 * @return void
+	 */
+	private function define_cron_hooks() {
+		$this->loader->add_action( Cideapps_Cf7_Mailjet_Upload_Cleanup::CRON_HOOK, 'Cideapps_Cf7_Mailjet_Upload_Cleanup', 'run_cleanup' );
 	}
 
 	/**
@@ -146,6 +157,11 @@ class Cideapps_Cf7_Mailjet {
 		 * The class responsible for handling CF7 submissions.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-cf7-handler.php';
+
+		/**
+		 * Upload retention cleanup (WP-Cron).
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-upload-cleanup.php';
 
 		$this->loader = new Cideapps_Cf7_Mailjet_Loader();
 

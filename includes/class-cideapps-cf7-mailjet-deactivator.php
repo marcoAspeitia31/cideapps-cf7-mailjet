@@ -30,7 +30,8 @@ class Cideapps_Cf7_Mailjet_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
+		require_once plugin_dir_path( __FILE__ ) . 'class-cideapps-cf7-mailjet-upload-cleanup.php';
+		Cideapps_Cf7_Mailjet_Upload_Cleanup::unschedule_cron();
 	}
 
 }
