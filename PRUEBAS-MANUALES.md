@@ -2,9 +2,9 @@
 
 Documento de validación manual del plugin. Incluye pruebas del plan original y las realizadas durante el desarrollo (modos de envío, notificación al negocio, variables Mailjet, metadata, mapeos dinámicos y adjuntos).
 
-**Versión plugin probada:** 1.3.1  
+**Versión plugin probada:** 1.3.1 + sprint mantenimiento (commit `817de74`)  
 **Última actualización:** mayo 2026  
-**Estado:** Etapa de desarrollo y QA manual **completada** (staging + producción). Actividades opcionales: ver `ACTIVIDADES-FUTURAS.md`.
+**Estado:** Etapa v1.3.1 **completada** (staging + producción). **Fase 1** del sprint de mantenimiento **validada** (ver §11). Siguiente: Fase 2 (`ACTIVIDADES-FUTURAS.md`).
 
 ---
 
@@ -38,6 +38,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Mail-tags especiales (`[_remote_ip]`, etc.) | OK | Mapeo dinámico + plantilla Mailjet |
 | Producción IONOS VPS (SMTP 25 bloqueado) | OK | Solo **Solo Mailjet**; sin correo CF7 nativo |
 | Producción cPanel | OK | **CF7 + Mailjet** y **Solo Mailjet** |
+| Fase 1 — Limpieza adjuntos (cron retención) | OK | Commit `817de74`; staging local mayo 2026 (§11) |
 
 ---
 
@@ -200,6 +201,14 @@ Activar: **Adjuntos CF7 (URLs en Mailjet)**.
 - [x] Notificación **HTML por defecto**: campo file muestra enlace clicable (no hash CF7)
 - [x] Plantilla Mailjet: no referenciar `attachments_all` / `*_url` si no hay archivo, salvo `{{var:clave:""}}`
 
+### Retención y limpieza automática (Fase 1 — validado)
+
+Relacionado con §11. Requiere commit `feat(attachment-retention): …` (`817de74`).
+
+- [x] Campo **Días de retención de adjuntos** en admin (pestaña CF7)
+- [x] Valor `0`: no borra archivos; cron desprogramado tras guardar
+- [x] Valor `30`: cron diario `cideapps_cf7_mailjet_upload_cleanup` visible en `wp cron event list`
+
 ---
 
 ## 7. Lista Mailjet y autorespuesta
@@ -269,6 +278,60 @@ Escenario típico: el servidor **no** permite envío SMTP saliente; CF7 nativo f
 | Segundo envío “no hace nada” | Idempotencia o rate limit; ver `debug.log` |
 | Archivo no en Medios | Normal: ruta `uploads/cideapps-cf7-mailjet/` |
 | Prueba lista fallaba al guardar | Usar solo botón **Probar conexión** (formulario separado) |
+| Cron cleanup `errors=2`, `deleted=0` | Ejecutar WP-CLI como `www-data`: `sudo -u www-data wp cron event run cideapps_cf7_mailjet_upload_cleanup` |
+
+---
+
+## 11. Sprint mantenimiento — Fase 1: limpieza de adjuntos (cron)
+
+**Feature:** retención configurable y borrado automático en `uploads/cideapps-cf7-mailjet/`  
+**Commit:** `817de74` — `feat(attachment-retention): implement attachment retention settings and cron management`  
+**Entorno:** staging local (`cideapps.local`), mayo 2026  
+**Resultado:** **validación exitosa** — no continuar Fase 2 hasta revisar este apartado.
+
+### Admin
+
+- [x] **Ajustes → CF7 Mailjet → CF7:** campo **Días de retención de adjuntos** visible
+- [x] Descripción clara: `0` = desactivado; recomendado `30`
+- [x] Guardar retención **30** persiste option `cideapps_cf7_mailjet_attachment_retention_days`
+- [x] Guardar retención **0** desactiva limpieza (sin borrar archivos existentes por sí solo)
+
+### WP-Cron
+
+- [x] Con retención **30**: `wp cron event list` muestra `cideapps_cf7_mailjet_upload_cleanup` (recurrencia `1 day`)
+- [x] Con retención **0** tras guardar: evento de cleanup no programado (o eliminado tras `reschedule_cron`)
+
+### Limpieza de archivos (prueba manual)
+
+Preparación:
+
+- [x] Archivos de prueba con antigüedad &gt; 30 días (`touch -d '40 days ago'`), dueño `www-data:www-data`
+- [x] Rutas bajo `wp-content/uploads/cideapps-cf7-mailjet/` (ej. `archivo.pdf`, `2026/04/test.pdf`)
+
+Ejecución:
+
+```bash
+sudo -u www-data wp cron event run cideapps_cf7_mailjet_upload_cleanup
+```
+
+Resultados observados:
+
+- [x] Log: `Upload cleanup finished (retention 30 days): deleted=2, skipped=6, errors=0`
+- [x] `archivo.pdf` y `2026/04/test.pdf` **eliminados**
+- [x] `.htaccess` en `cideapps-cf7-mailjet/` **conservado**
+- [x] Contenido en `uploads/2026/05/` (fuera de la carpeta del plugin) **sin cambios**
+
+### Nota QA — permisos WP-CLI
+
+- [x] `wp cron event run …` **sin** `sudo -u www-data` sobre archivos `www-data`: `deleted=0`, `errors=2` (permisos; **no** bug de lógica)
+- [x] Mismo comando **como `www-data`**: borrado correcto (equivalente al usuario del servidor web en producción)
+
+### Regresión (no tocado en Fase 1)
+
+- [x] Envío CF7 con adjuntos (copia a `uploads/cideapps-cf7-mailjet/`) — sin cambios en handler/API en este commit
+- [x] Modos `cf7_mail` y `mailjet_only` — sin cambios en este commit
+
+**Fase 2 pendiente:** `uninstall.php` limpio (`ACTIVIDADES-FUTURAS.md` §3).
 
 ---
 
