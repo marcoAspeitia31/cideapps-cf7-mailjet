@@ -24,6 +24,7 @@ La arquitectura técnica y decisiones internas en `DESARROLLO.md`.
 | Guía de despliegue y changelog                              | Completado |
 | QA manual staging / producción                              | Completado |
 | Refactor UX del canal de notificación interna               | Completado |
+| Selector visual de campos CF7 (dropdowns, PHP-only)         | Completado |
 
 ---
 
@@ -33,7 +34,8 @@ La arquitectura técnica y decisiones internas en `DESARROLLO.md`.
 | -------- | -------------------------------------------------------------- |
 | `v1.3.1` | Cierre etapa funcional principal                               |
 | `v1.3.2` | Sprint mantenimiento (uploads + uninstall)                     |
-| `v1.3.3` | Refactor UX y simplificación del canal de notificación interna |
+| `v1.3.3` | Refactor UX y canal de notificación interna                    |
+| `v1.3.4` | Selector visual de campos CF7 (dropdowns desde tags reales)  |
 
 ---
 
@@ -51,40 +53,28 @@ Las siguientes actividades se priorizan por:
 
 # Prioridad alta
 
-## 1. Selector visual de campos CF7
+## 1. Selector visual de campos CF7 — **Completado**
 
-Actualmente los campos se configuran manualmente:
+**Estado:** implementado y validado en release `v1.3.4` (junio 2026). QA en `PRUEBAS-MANUALES.md` §15. La tag `v1.3.3` corresponde únicamente al refactor del canal de notificación interna.
 
-```txt
-your-email
-your-name
-your-phone
-```
+### Entregado en v1.3.4
 
-### Objetivo
+* Dropdowns en admin para mappings globales (`email`, `name`, `phone`, `service`, `message`).
+* Lectura de tags con `scan_form_tags()` vía `Cideapps_Cf7_Mailjet_Cf7_Field_Selector`.
+* Fuente: formularios habilitados, o todos los CF7 si ninguno está habilitado.
+* Valores guardados inexistentes en el formulario: opción `(valor guardado)`.
+* Iteración mínima: solo PHP (sin JS, CSS nuevo, AJAX ni transients).
 
-Detectar automáticamente tags del formulario CF7 habilitado y mostrar dropdowns visuales.
+### Mejoras diferidas (no bloquean la siguiente fase)
 
-### Ejemplo esperado
-
-```txt
-Email      → [your-email ▼]
-Nombre     → [your-name ▼]
-Teléfono   → [your-phone ▼]
-Asunto     → [your-subject ▼]
-Mensaje    → [your-message ▼]
-```
-
-### Beneficios
-
-* Reduce errores de configuración.
-* Facilita onboarding de clientes no técnicos.
-* Mejora percepción profesional del plugin.
-* Reduce soporte manual.
+* Refresco de dropdowns sin recargar página (JS).
+* Selectores por formulario individual (ver §2).
+* Entrada manual explícita además del desplegable.
+* Filtrado por tipo de tag (email vs textarea) en la UI.
 
 ---
 
-## 2. Configuración avanzada por formulario CF7
+## 2. Configuración avanzada por formulario CF7 — **Siguiente**
 
 Actualmente varias configuraciones siguen siendo globales.
 
@@ -345,12 +335,16 @@ No prioritario actualmente.
 
 El plugin ya se considera estable y reutilizable para clientes reales.
 
+**Completado recientemente:** selector visual de campos CF7 (`v1.3.4`).
+
+**Siguiente fase recomendada:** configuración avanzada por formulario CF7 (§2 de este documento), reutilizando `Cideapps_Cf7_Mailjet_Cf7_Field_Selector` para dropdowns por `form_id` sin duplicar la lógica global existente.
+
 Las siguientes etapas deben enfocarse principalmente en:
 
-1. Simplificar aún más la configuración.
-2. Reducir errores humanos.
-3. Mejorar experiencia de administración.
-4. Escalar correctamente a múltiples formularios.
+1. Configuración avanzada por formulario CF7 (prioridad inmediata).
+2. Simplificar aún más la configuración y reducir errores humanos.
+3. Mejorar experiencia de administración en mappings dinámicos y metadata.
+4. Escalar correctamente a múltiples formularios en un mismo sitio.
 5. Fortalecer reutilización entre clientes/agencia.
 
 Las futuras funcionalidades deben priorizar:
