@@ -39,6 +39,7 @@ class Cideapps_Cf7_Mailjet_Uninstall {
 		'cideapps_cf7_mailjet_on_existing_contact',
 		'cideapps_cf7_mailjet_enabled_form_ids',
 		'cideapps_cf7_mailjet_form_mail_modes',
+		'cideapps_cf7_mailjet_form_settings',
 		'cideapps_cf7_mailjet_email_field',
 		'cideapps_cf7_mailjet_name_field',
 		'cideapps_cf7_mailjet_phone_field',
