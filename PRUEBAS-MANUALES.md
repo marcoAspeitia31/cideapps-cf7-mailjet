@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B3** implementado — validar en staging; **Epic C** pendiente de aprobación).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B** validado; **Epic C1** implementado — validar en staging; **C2+** pendiente).
 
 ---
 
@@ -519,16 +519,47 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ### Epic C — Tab Formularios (lista)
 
-**C1 — Tabla de formularios CF7**
+**C1 — Tabla simple (alcance reducido)**
 
-- [ ] Se listan todos los formularios CF7 del sitio (o los detectados según diseño acordado)
-- [ ] Columna estado (activo/inactivo) coincide con `enabled_form_ids`
-- [ ] Columna canal resumido coincide con `form_mail_modes` (`cf7_mail` / `mailjet_only`)
+- [x] Tab **Formularios** muestra tabla `wp-list-table` (sin acordeón ni checkboxes visibles por formulario)
+- [x] Se listan todos los formularios CF7 detectados (título + ID en columna Formulario)
+- [x] Columna **Estado** (Activo/Inactivo) coincide con `cideapps_cf7_mailjet_enabled_form_ids`
+- [x] Columna **Canal** coincide con `cideapps_cf7_mailjet_form_mail_modes` (`cf7_mail` → texto nativo CF7; `mailjet_only` → Mailjet API)
+- [x] **Editar** enlaza a `?page=cideapps-cf7-mailjet&tab=forms&form_id={id}` y abre `#form-detail` del formulario correcto
+- [x] **Volver a formularios** desde detalle regresa a la lista sin error
+- [x] Guardar configuración desde la lista **no** vacía `enabled_form_ids` ni cambia canales (bloque oculto de preservación)
+- [x] Configuración global colapsada y mappings globales siguen visibles debajo de la tabla
+- [x] **No** en C1: Restablecer, badges herencia, columna mappings, filtros, búsqueda, métricas
 
-**C2 — Acciones**
+**Historial de validación C1**
 
-- [ ] **Editar** abre la vista detalle del formulario correcto (`form_id`)
-- [ ] **Restablecer** elimina solo configuración de ese formulario (p. ej. `cideapps_cf7_mailjet_form_settings[form_id]`, modo); no borra credenciales Mailjet ni options globales de cuenta
+- [x] **Staging (junio 2026):** validación integral completada por producto/QA; C1 se cierra como entregado.
+- [x] Evidencia funcional confirmada: tabla, columnas (Formulario/Estado/Canal), navegación Editar/Volver y preservación al guardar.
+- [x] Alcance respetado: sin Restablecer, sin badges de herencia, sin indicadores de mappings, sin filtros, sin búsqueda, sin métricas.
+
+**C2 — Restablecer por formulario**
+
+- [x] Tabla Formularios muestra acción **Restablecer** por fila junto a **Editar**
+- [x] Acción protegida con nonce propio y validación `manage_options`
+- [x] Confirmación UX antes de ejecutar el restablecimiento
+- [x] Restablecer elimina solo `cideapps_cf7_mailjet_form_settings[form_id]`
+- [x] Restablecer elimina solo ese `form_id` de `cideapps_cf7_mailjet_enabled_form_ids`
+- [x] Restablecer elimina solo `cideapps_cf7_mailjet_form_mail_modes[form_id]`
+- [x] Redirección posterior a `?page=cideapps-cf7-mailjet&tab=forms`
+- [x] Notice visible de éxito/error tras redirección
+- [x] Restablecer no muestra warning `Cannot modify header information`
+- [x] Bloque hidden de preservación no reinyecta `form_mail_modes[form_id]` tras reset
+- [x] No modifica credenciales/globales/seguridad/logs/retención ni otros formularios
+
+**Historial de validación C2**
+
+- [x] **QA técnico local (junio 2026):** revisión de flujo, nonce/capability, limpieza de opciones por `form_id`, redirección y notices.
+- [x] **Bugfix C2 (junio 2026):** procesamiento de reset movido a `admin_init` (antes de output) para evitar warnings de headers.
+- [x] **Validación staging (junio 2026):** restablecimiento probado en múltiples formularios; sin warnings de headers, con redirección y notices correctos.
+
+**Epic C — Cierre**
+
+- [x] Epic C (**C1 + C2**) completado y validado en staging (junio 2026).
 
 ### Epic D — Vista detalle por formulario
 

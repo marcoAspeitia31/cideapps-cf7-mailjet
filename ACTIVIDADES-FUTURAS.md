@@ -188,10 +188,22 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 
 ## Epic C — Tab Formularios (lista)
 
-| Fase | Entregable | QA esperado |
-| ---- | ----------- | ----------- |
-| C1 | Tabla CF7: formulario, estado (activo/inactivo), canal resumido | Coincide con `enabled_form_ids` y `form_mail_modes` |
-| C2 | Acciones: Editar / Restablecer (restablecer solo datos del `form_id`) | Restablecer no toca credenciales Mailjet |
+| Fase | Entregable | QA esperado | Estado |
+| ---- | ----------- | ----------- | ------ |
+| C1 | Tabla simple: Formulario, Estado, Canal, Editar (`form_id` en URL) | Coincide con `enabled_form_ids` y `form_mail_modes` | **Completado y validado** (staging, junio 2026) |
+| C2 | Acción Restablecer por `form_id` (confirmación; sin tocar global/Mailjet) | Solo un formulario | **Completado y validado** (staging, junio 2026) |
+
+**Epic C (C1–C2):** **cerrado y validado en staging** (junio 2026).
+
+### Plan técnico C1 (alcance reducido — aprobado)
+
+**Sí:** tabla en `#forms-list`; columnas Formulario, Estado de integración, Canal, Acción (Editar → `tab=forms&form_id={id}`); inputs ocultos para preservar `enabled_form_ids` y `form_mail_modes` al guardar; global colapsado y mappings globales sin cambios.
+
+**No en C1:** Restablecer; columna Mappings; badges Hereda/Personalizado; filtros; búsqueda; edición inline en tabla.
+
+**Archivos:** `admin/partials/cideapps-cf7-mailjet-admin-display.php`, `admin/css/cideapps-cf7-mailjet-admin.css`.
+
+**No tocar:** POST handler, runtime, `Form_Settings`, resolver, Mailjet API.
 
 ---
 

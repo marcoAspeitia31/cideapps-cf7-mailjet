@@ -143,8 +143,74 @@ class Cideapps_Cf7_Mailjet_Admin {
 	 * @since    1.0.0
 	 */
 	public function register_settings() {
-		// Settings are processed manually in admin-display.php
-		// This method is kept for potential future use
+		if ( 'POST' !== strtoupper( (string) $_SERVER['REQUEST_METHOD'] ) ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+		if ( 'cideapps-cf7-mailjet' !== $page || 'forms' !== $tab ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['cideapps_cf7_mailjet_reset_form_id'] ) ) {
+			return;
+		}
+
+		$redirect_url = add_query_arg(
+			array(
+				'page' => 'cideapps-cf7-mailjet',
+				'tab'  => 'forms',
+			),
+			admin_url( 'options-general.php' )
+		);
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_forbidden', $redirect_url );
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		$nonce_valid = isset( $_POST['cideapps_cf7_mailjet_reset_form_nonce'] )
+			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_reset_form_nonce'] ) ), 'cideapps_cf7_mailjet_reset_form' );
+		if ( ! $nonce_valid ) {
+			$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_invalid_nonce', $redirect_url );
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		$reset_form_id = (int) wp_unslash( $_POST['cideapps_cf7_mailjet_reset_form_id'] );
+		if ( $reset_form_id <= 0 ) {
+			$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_invalid_form', $redirect_url );
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		$enabled_form_ids = get_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
+		$enabled_form_ids = is_array( $enabled_form_ids ) ? array_map( 'intval', $enabled_form_ids ) : array();
+		$enabled_form_ids = array_values(
+			array_filter(
+				$enabled_form_ids,
+				static function ( $form_id ) use ( $reset_form_id ) {
+					return (int) $form_id !== $reset_form_id;
+				}
+			)
+		);
+		update_option( 'cideapps_cf7_mailjet_enabled_form_ids', $enabled_form_ids );
+
+		$form_mail_modes = get_option( 'cideapps_cf7_mailjet_form_mail_modes', array() );
+		$form_mail_modes = is_array( $form_mail_modes ) ? $form_mail_modes : array();
+		unset( $form_mail_modes[ $reset_form_id ] );
+		update_option( 'cideapps_cf7_mailjet_form_mail_modes', $form_mail_modes );
+
+		$form_settings = get_option( 'cideapps_cf7_mailjet_form_settings', array() );
+		$form_settings = is_array( $form_settings ) ? $form_settings : array();
+		unset( $form_settings[ $reset_form_id ] );
+		update_option( 'cideapps_cf7_mailjet_form_settings', $form_settings );
+
+		$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_success', $redirect_url );
+		wp_safe_redirect( $redirect_url );
+		exit;
 	}
 
 }
