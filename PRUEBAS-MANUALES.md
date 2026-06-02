@@ -594,6 +594,12 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
 - [x] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
 - [x] Canal `cf7_mail` no envía notificación interna por Mailjet API
+- [x] Copy global explícito: cambios afectan a todos los formularios del plugin (notice informativo)
+
+**Historial de validación D4**
+
+- [x] **Staging (junio 2026):** validación funcional completa (campos, guardado global, canal `mailjet_only` / `cf7_mail`, logs).
+- [x] Copy UX reforzado: alcance global visible en card Notificación interna.
 
 **D5 — Autorespuesta y lista (UI)**
 
