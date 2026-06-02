@@ -644,11 +644,11 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 
 			<div id="forms-list" class="cideapps-cf7-admin-forms-list" style="<?php echo $show_form_detail ? 'display:none;' : ''; ?>">
 				<h2><?php esc_html_e( 'Formularios', 'cideapps-cf7-mailjet' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Configura cada formulario de Contact Form 7. La tabla de formularios llegará en una fase siguiente.', 'cideapps-cf7-mailjet' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Formularios de Contact Form 7 detectados en este sitio. Usa Editar para configurar cada uno.', 'cideapps-cf7-mailjet' ); ?></p>
 
 				<details id="cideapps-cf7-global-site-settings" class="cideapps-cf7-global-site-settings">
 					<summary><?php esc_html_e( 'Configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></summary>
-					<p class="description"><?php esc_html_e( 'Valores que aplican a todo el sitio. La notificación interna al negocio se configura por formulario (enlaces más abajo).', 'cideapps-cf7-mailjet' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Valores que aplican a todo el sitio. La notificación interna al negocio se configura por formulario desde Editar en la tabla.', 'cideapps-cf7-mailjet' ); ?></p>
 
 					<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
@@ -719,135 +719,72 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 			</table>
 				</details>
 
-					<h3 class="title"><?php esc_html_e( 'Notificación interna por formulario', 'cideapps-cf7-mailjet' ); ?></h3>
-					<p class="description"><?php esc_html_e( 'La notificación al negocio no se configura en el bloque global. Abre cada formulario:', 'cideapps-cf7-mailjet' ); ?></p>
 					<?php if ( ! empty( $cf7_forms ) ) : ?>
-						<ul class="cideapps-cf7-form-notify-links">
-							<?php foreach ( $cf7_forms as $notify_form_id => $notify_form_title ) : ?>
-								<li>
-									<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms', (int) $notify_form_id ) ); ?>">
-										<?php
-										echo esc_html(
-											sprintf(
-												/* translators: 1: form title, 2: form ID. */
-												__( '%1$s (ID: %2$d) — Configurar notificación', 'cideapps-cf7-mailjet' ),
-												$notify_form_title,
-												(int) $notify_form_id
-											)
-										);
-										?>
-									</a>
-								</li>
-							<?php endforeach; ?>
-						</ul>
-					<?php else : ?>
-						<p><?php esc_html_e( 'No hay formularios CF7.', 'cideapps-cf7-mailjet' ); ?></p>
-					<?php endif; ?>
-
-					<h3 class="title"><?php esc_html_e( 'Formularios Contact Form 7', 'cideapps-cf7-mailjet' ); ?></h3>
-			<table class="form-table">
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Formularios Habilitados', 'cideapps-cf7-mailjet' ); ?></th>
-					<td>
-						<?php if ( ! empty( $cf7_forms ) ) : ?>
-							<p class="description" style="margin: 0 0 12px;">
-								<?php esc_html_e( 'Los formularios con mappings propios aplican esa configuración al procesar envíos. El resto usa los mappings globales.', 'cideapps-cf7-mailjet' ); ?>
-							</p>
-							<?php
-							$per_form_mapping_labels = array(
-								'email_field'   => __( 'Campo de Email', 'cideapps-cf7-mailjet' ),
-								'name_field'    => __( 'Campo de Nombre', 'cideapps-cf7-mailjet' ),
-								'phone_field'   => __( 'Campo de Teléfono', 'cideapps-cf7-mailjet' ),
-								'service_field' => __( 'Campo de Servicio', 'cideapps-cf7-mailjet' ),
-								'message_field' => __( 'Campo de Mensaje', 'cideapps-cf7-mailjet' ),
-							);
-							?>
+						<table class="wp-list-table widefat fixed striped cideapps-cf7-forms-table">
+							<thead>
+								<tr>
+									<th scope="col" class="column-form"><?php esc_html_e( 'Formulario', 'cideapps-cf7-mailjet' ); ?></th>
+									<th scope="col" class="column-status"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+									<th scope="col" class="column-channel"><?php esc_html_e( 'Canal', 'cideapps-cf7-mailjet' ); ?></th>
+									<th scope="col" class="column-action"><?php esc_html_e( 'Acción', 'cideapps-cf7-mailjet' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
+									<?php
+									$form_id_int  = (int) $form_id;
+									$current_mode = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
+									if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
+										$current_mode = 'cf7_mail';
+									}
+									$is_enabled = in_array( $form_id_int, array_map( 'intval', (array) $enabled_form_ids ), true );
+									$channel_label = 'mailjet_only' === $current_mode
+										? __( 'Mailjet API', 'cideapps-cf7-mailjet' )
+										: __( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' );
+									$status_label = $is_enabled
+										? __( 'Activo', 'cideapps-cf7-mailjet' )
+										: __( 'Inactivo', 'cideapps-cf7-mailjet' );
+									$edit_url = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms', $form_id_int );
+									?>
+									<tr>
+										<td class="column-form">
+											<strong><?php echo esc_html( $form_title ); ?></strong>
+											<br />
+											<span class="description"><?php echo esc_html( sprintf( 'ID: %d', $form_id_int ) ); ?></span>
+										</td>
+										<td class="column-status"><?php echo esc_html( $status_label ); ?></td>
+										<td class="column-channel"><?php echo esc_html( $channel_label ); ?></td>
+										<td class="column-action">
+											<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-secondary"><?php esc_html_e( 'Editar', 'cideapps-cf7-mailjet' ); ?></a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+						<div class="cideapps-cf7-forms-list-preservation" hidden aria-hidden="true">
 							<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
 								<?php
-								$form_id_int              = (int) $form_id;
-								$current_mode             = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
-								$is_enabled               = in_array( $form_id_int, array_map( 'intval', (array) $enabled_form_ids ), true );
-								$uses_global_field_maps   = Cideapps_Cf7_Mailjet_Form_Settings::uses_global_field_mappings( $form_id_int );
-								$use_global_field_name    = sprintf(
-									'%s[%d][%s]',
-									Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME,
-									$form_id_int,
-									Cideapps_Cf7_Mailjet_Form_Settings::USE_GLOBAL_FIELD_MAPPINGS_KEY
-								);
-								$use_global_field_id      = sprintf(
-									'%s_%d_%s',
-									Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME,
-									$form_id_int,
-									Cideapps_Cf7_Mailjet_Form_Settings::USE_GLOBAL_FIELD_MAPPINGS_KEY
-								);
+								$form_id_int  = (int) $form_id;
+								$current_mode = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
+								if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
+									$current_mode = 'cf7_mail';
+								}
+								$is_enabled = in_array( $form_id_int, array_map( 'intval', (array) $enabled_form_ids ), true );
 								?>
-								<div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #dcdcde;">
-									<label style="display:block; margin-bottom: 6px;">
-										<input type="checkbox" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( $form_id_int ); ?>" <?php checked( $is_enabled ); ?> />
-										<strong><?php echo esc_html( $form_title ); ?></strong> (ID: <?php echo esc_html( $form_id_int ); ?>)
-									</label>
-									<label for="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" style="display:block; margin-left: 24px;">
-										<?php esc_html_e( 'Canal de notificación interna:', 'cideapps-cf7-mailjet' ); ?>
-										<select id="cideapps_cf7_mailjet_form_mail_mode_<?php echo esc_attr( $form_id_int ); ?>" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" style="margin-left: 6px;">
-											<option value="cf7_mail" <?php selected( $current_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' ); ?></option>
-											<option value="mailjet_only" <?php selected( $current_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Mailjet API', 'cideapps-cf7-mailjet' ); ?></option>
-										</select>
-									</label>
-									<p class="description" style="margin: 6px 0 0 24px;">
-										<strong><?php esc_html_e( 'Email nativo de Contact Form 7:', 'cideapps-cf7-mailjet' ); ?></strong>
-										<?php esc_html_e( 'Contact Form 7 envía la notificación interna usando su pestaña Mail.', 'cideapps-cf7-mailjet' ); ?>
-										<br />
-										<strong><?php esc_html_e( 'Mailjet API:', 'cideapps-cf7-mailjet' ); ?></strong>
-										<?php esc_html_e( 'Contact Form 7 omite su correo nativo y la notificación interna se envía por Mailjet API. Recomendado para VPS con SMTP bloqueado.', 'cideapps-cf7-mailjet' ); ?>
-									</p>
-									<?php if ( $is_enabled ) : ?>
-										<div style="margin: 12px 0 0 24px;">
-											<label for="<?php echo esc_attr( $use_global_field_id ); ?>" style="display:block; margin-bottom: 6px;">
-												<input type="hidden" name="<?php echo esc_attr( $use_global_field_name ); ?>" value="0" />
-												<input type="checkbox" id="<?php echo esc_attr( $use_global_field_id ); ?>" name="<?php echo esc_attr( $use_global_field_name ); ?>" value="1" <?php checked( $uses_global_field_maps, true ); ?> />
-												<?php esc_html_e( 'Usar mappings globales de campos', 'cideapps-cf7-mailjet' ); ?>
-											</label>
-											<?php if ( $uses_global_field_maps ) : ?>
-												<p class="description" style="margin: 0;">
-													<?php esc_html_e( 'Este formulario heredará los mappings de la sección «Mappings globales de campos» más abajo.', 'cideapps-cf7-mailjet' ); ?>
-												</p>
-											<?php elseif ( $cf7_use_field_selectors ) : ?>
-												<table class="form-table" style="margin: 8px 0 0;">
-													<tbody>
-														<?php foreach ( Cideapps_Cf7_Mailjet_Form_Settings::FIELD_MAPPING_KEYS as $mapping_key ) : ?>
-															<?php
-															$mapping_current = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_int, $mapping_key );
-															$mapping_label   = isset( $per_form_mapping_labels[ $mapping_key ] ) ? $per_form_mapping_labels[ $mapping_key ] : $mapping_key;
-															$mapping_select_id = sprintf(
-																'%s_%d_%s',
-																Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME,
-																$form_id_int,
-																$mapping_key
-															);
-															?>
-															<tr>
-																<th scope="row" style="padding-left: 0;">
-																	<label for="<?php echo esc_attr( $mapping_select_id ); ?>"><?php echo esc_html( $mapping_label ); ?></label>
-																</th>
-																<td style="padding-left: 0;">
-																	<?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_int, $mapping_key, $mapping_current ); ?>
-																</td>
-															</tr>
-														<?php endforeach; ?>
-													</tbody>
-												</table>
-											<?php else : ?>
-												<p class="description"><?php esc_html_e( 'Contact Form 7 no está disponible; no se pueden listar campos de este formulario.', 'cideapps-cf7-mailjet' ); ?></p>
-											<?php endif; ?>
-										</div>
-									<?php endif; ?>
-								</div>
+								<?php if ( $is_enabled ) : ?>
+									<input type="hidden" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( $form_id_int ); ?>" />
+								<?php endif; ?>
+								<input type="hidden" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" value="<?php echo esc_attr( $current_mode ); ?>" />
 							<?php endforeach; ?>
-						<?php else : ?>
-							<p><?php esc_html_e( 'No se encontraron formularios de Contact Form 7.', 'cideapps-cf7-mailjet' ); ?></p>
-						<?php endif; ?>
-					</td>
-				</tr>
+						</div>
+						<p class="description cideapps-cf7-forms-table-note">
+							<?php esc_html_e( 'Estado = integración activa en este plugin. Canal y mappings se editan en la vista del formulario (Editar).', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+					<?php else : ?>
+						<p><?php esc_html_e( 'No se encontraron formularios de Contact Form 7.', 'cideapps-cf7-mailjet' ); ?></p>
+					<?php endif; ?>
+
+			<table class="form-table">
 				<?php if ( $cf7_use_field_selectors ) : ?>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Campos CF7 detectados', 'cideapps-cf7-mailjet' ); ?></th>

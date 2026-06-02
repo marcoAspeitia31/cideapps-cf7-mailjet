@@ -41,9 +41,18 @@
 	font-weight: 600;
 }
 
-.cideapps-cf7-form-notify-links {
-	margin: 0.5em 0 1.5em 1.5em;
-	list-style: disc;
+.cideapps-cf7-forms-table {
+	margin: 1em 0 0.5em;
+	max-width: 100%;
+}
+
+.cideapps-cf7-forms-table .column-action {
+	width: 7rem;
+}
+
+.cideapps-cf7-forms-table-note {
+	margin: 0.5em 0 1.5em;
+	max-width: 720px;
 }
 
 .cideapps-cf7-admin-form-detail .title {

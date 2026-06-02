@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B3** implementado — validar en staging; **Epic C** pendiente de aprobación).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B** validado; **Epic C1** implementado — validar en staging; **C2+** pendiente).
 
 ---
 
@@ -519,15 +519,20 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ### Epic C — Tab Formularios (lista)
 
-**C1 — Tabla de formularios CF7**
+**C1 — Tabla simple (alcance reducido)**
 
-- [ ] Se listan todos los formularios CF7 del sitio (o los detectados según diseño acordado)
-- [ ] Columna estado (activo/inactivo) coincide con `enabled_form_ids`
-- [ ] Columna canal resumido coincide con `form_mail_modes` (`cf7_mail` / `mailjet_only`)
+- [ ] Tab **Formularios** muestra tabla `wp-list-table` (sin acordeón ni checkboxes visibles por formulario)
+- [ ] Se listan todos los formularios CF7 detectados (título + ID en columna Formulario)
+- [ ] Columna **Estado** (Activo/Inactivo) coincide con `cideapps_cf7_mailjet_enabled_form_ids`
+- [ ] Columna **Canal** coincide con `cideapps_cf7_mailjet_form_mail_modes` (`cf7_mail` → texto nativo CF7; `mailjet_only` → Mailjet API)
+- [ ] **Editar** enlaza a `?page=cideapps-cf7-mailjet&tab=forms&form_id={id}` y abre `#form-detail` del formulario correcto
+- [ ] **Volver a formularios** desde detalle regresa a la lista sin error
+- [ ] Guardar configuración desde la lista **no** vacía `enabled_form_ids` ni cambia canales (bloque oculto de preservación)
+- [ ] Configuración global colapsada y mappings globales siguen visibles debajo de la tabla
+- [ ] **No** en C1: Restablecer, badges herencia, columna mappings, filtros, búsqueda, métricas
 
-**C2 — Acciones**
+**C2 — Restablecer (pendiente de implementación)**
 
-- [ ] **Editar** abre la vista detalle del formulario correcto (`form_id`)
 - [ ] **Restablecer** elimina solo configuración de ese formulario (p. ej. `cideapps_cf7_mailjet_form_settings[form_id]`, modo); no borra credenciales Mailjet ni options globales de cuenta
 
 ### Epic D — Vista detalle por formulario
