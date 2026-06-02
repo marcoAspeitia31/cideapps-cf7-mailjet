@@ -600,11 +600,18 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 - [x] **Staging (junio 2026):** validación funcional completa (campos, guardado global, canal `mailjet_only` / `cf7_mail`, logs).
 - [x] Copy UX reforzado: alcance global visible en card Notificación interna.
+- [x] Copy alineado con D5: sin promesa de versión futura; mensaje de alcance global del sitio.
 
 **D5 — Autorespuesta y lista (UI)**
 
-- [ ] Opciones de autorespuesta y lista accesibles desde el detalle (o aviso explícito si siguen globales en v1.4.0)
-- [ ] Autorespuesta y alta en lista siguen funcionando en envío real (regresión secciones 3–4)
+- [x] Cards Autorespuesta y Lista en detalle: solo lectura, notice global y enlace a configuración global
+- [x] Estado e IDs visibles cuando la opción está activa
+- [x] Guardar desde detalle no modifica autorespuesta ni lista (sin inputs duplicados en detalle)
+- [x] Autorespuesta y alta en lista siguen funcionando en envío real (regresión secciones 3–4)
+
+**Historial de validación D5**
+
+- [x] **Staging (junio 2026):** cards solo lectura, notices, enlaces a global (`#cideapps-cf7-global-autoreply` / `#cideapps-cf7-global-list-mailjet`), sin regresión en guardado ni envío.
 
 **D6 — Metadata y adjuntos (UI)**
 
