@@ -209,14 +209,14 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 
 ## Epic D — Vista detalle por formulario
 
-| Fase | Entregable | Reutiliza |
-| ---- | ----------- | --------- |
-| D1 | Pantalla o ruta detalle (esqueleto + navegación volver) | — |
-| D2 | Sección **General**: activar integración; canal interno | Opciones actuales per-form |
-| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` |
-| D4 | Sección **Notificación interna** (UI) | Options globales actuales; mismo runtime |
-| D5 | Sección **Autorespuesta** y **Lista** (UI) | Options globales; copy claro «global hasta v1.4.1» |
-| D6 | Sección **Metadata** y **Adjuntos** (UI) | Options globales actuales |
+| Fase | Entregable | Reutiliza | Estado |
+| ---- | ----------- | --------- | ------ |
+| D1 | Pantalla o ruta detalle (esqueleto + navegación volver) | — | **Completado y validado** (staging, junio 2026) |
+| D2 | Sección **General**: activar integración; canal interno | Opciones actuales per-form | **Completado y validado** (staging, junio 2026) |
+| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` | Pendiente |
+| D4 | Sección **Notificación interna** (UI) | Options globales actuales; mismo runtime | Pendiente |
+| D5 | Sección **Autorespuesta** y **Lista** (UI) | Options globales; copy claro «global hasta v1.4.1» | Pendiente |
+| D6 | Sección **Metadata** y **Adjuntos** (UI) | Options globales actuales | Pendiente |
 
 ---
 

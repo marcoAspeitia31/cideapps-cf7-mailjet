@@ -573,6 +573,11 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
 - [x] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
 
+**Historial de validación D2**
+
+- [x] **Staging (junio 2026):** validación completa de controles General + Canal en detalle; sin impacto en otros formularios.
+- [x] Preservación confirmada: guardar desde detalle no vacía `enabled_form_ids` ni sobrescribe `form_mail_modes` de otros formularios.
+
 **D3 — Campos y variables**
 
 - [ ] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
