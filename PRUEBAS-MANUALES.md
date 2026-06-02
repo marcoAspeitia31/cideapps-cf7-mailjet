@@ -565,8 +565,8 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D1 — Navegación**
 
-- [ ] Vista detalle accesible desde la tabla y vuelve a la lista sin error
-- [ ] El título o encabezado identifica el formulario CF7 editado
+- [x] Vista detalle accesible desde la tabla y vuelve a la lista sin error
+- [x] El título o encabezado identifica el formulario CF7 editado
 
 **D2 — General**
 
