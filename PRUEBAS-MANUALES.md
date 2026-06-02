@@ -547,12 +547,14 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Restablecer elimina solo `cideapps_cf7_mailjet_form_mail_modes[form_id]`
 - [x] Redirección posterior a `?page=cideapps-cf7-mailjet&tab=forms`
 - [x] Notice visible de éxito/error tras redirección
+- [x] Restablecer no muestra warning `Cannot modify header information`
 - [x] Bloque hidden de preservación no reinyecta `form_mail_modes[form_id]` tras reset
 - [x] No modifica credenciales/globales/seguridad/logs/retención ni otros formularios
 
 **Historial de validación C2**
 
 - [x] **QA técnico local (junio 2026):** revisión de flujo, nonce/capability, limpieza de opciones por `form_id`, redirección y notices.
+- [x] **Bugfix C2 (junio 2026):** procesamiento de reset movido a `admin_init` (antes de output) para evitar warnings de headers.
 - [ ] **Validación staging (pendiente):** ejecutar restablecimiento real en al menos 2 formularios y confirmar aislamiento total.
 
 ### Epic D — Vista detalle por formulario
