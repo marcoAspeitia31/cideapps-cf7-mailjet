@@ -176,9 +176,9 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 | Fase | Entregable | QA esperado | Estado |
 | ---- | ----------- | ----------- | ------ |
 | B0 | Blueprint UX navegación | Aprobación producto | **Completado** |
-| B1 | Shell: tabs **Mailjet** \| **Formularios** \| **Seguridad**; `#forms-list`, `#form-detail`; query args | Guardar no pierde datos | **Implementado** — validación manual pendiente |
-| B2 | Tab **Mailjet** limpio: solo credenciales y From | Sin mezcla con formularios | Pendiente |
-| B3 | Tab **Seguridad** limpio: rate limit, logs, retención, uninstall | Sin regresión cron/logs | Pendiente |
+| B1 | Shell: tabs **Mailjet** \| **Formularios** \| **Seguridad**; `#forms-list`, `#form-detail`; query args | Guardar no pierde datos | **Completado** (validado staging, junio 2026) |
+| B2 | Tab **Mailjet** limpio: solo credenciales y From | Sin mezcla con formularios | **Pendiente** |
+| B3 | Tab **Seguridad** limpio: rate limit, logs, retención, uninstall | Sin regresión cron/logs | **Pendiente** |
 
 **Nota v1.4.0:** Autorespuesta y lista permanecen en **configuración global del sitio** (colapsada en `#forms-list`). En `#form-detail` solo mensaje/enlace hasta persistencia per-form (v1.4.1+).
 

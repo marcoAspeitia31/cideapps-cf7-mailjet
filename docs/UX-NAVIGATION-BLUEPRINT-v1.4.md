@@ -105,4 +105,4 @@ Ejemplo detalle:
 | Fecha | Evento |
 | ----- | ------ |
 | 2026-06 | Epic B0 aprobado; blueprint persistido |
-| 2026-06 | Epic B1 — shell 3 tabs implementado |
+| 2026-06 | Epic B1 — shell 3 tabs implementado y validado en staging |

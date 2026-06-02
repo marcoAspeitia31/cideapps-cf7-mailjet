@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic B1 implementado — validación manual pendiente).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B1 cerrado**; siguiente fase **B2**).
 
 ---
 
@@ -45,7 +45,8 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
 | Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
 | v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (sección 15) |
-| v1.4.0 — Rediseño UX/Admin | Pendiente | Checklist sección 16; estrategia en `ACTIVIDADES-FUTURAS.md` |
+| v1.4.0 — Epic B1 shell admin (3 tabs) | OK | Validado staging junio 2026; sección 16 |
+| v1.4.0 — Rediseño UX/Admin (restante) | En curso | B2–G pendientes; `ACTIVIDADES-FUTURAS.md` |
 
 ---
 
@@ -484,23 +485,23 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ### Epic B — Navegación (3 tabs)
 
-**B1 — Shell Mailjet | Formularios | Seguridad** — implementado junio 2026 (pendiente validación manual en staging)
+**B1 — Shell Mailjet | Formularios | Seguridad** — **validado** (staging, junio 2026)
 
 - [x] Solo existen tres tabs principales (Mailjet, Formularios, Seguridad); tabs Autorespuesta/Lista/CF7 eliminados como navegación raíz
 - [x] Navegación por query args (`tab`, `form_id`); tab por defecto Formularios
 - [x] Contenedores `#forms-list` y `#form-detail`; notificación interna solo en detalle
 - [x] Global autorespuesta/lista en `<details>`; retención en tab Seguridad (markup)
 - [x] POST handler sin cambios (revisión estática código)
-- [ ] Guardar configuración desde cada tab no borra datos guardados en otros tabs *(validar en WP)*
-- [ ] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes *(validar en WP)*
+- [x] Guardar configuración desde cada tab no borra datos guardados en otros tabs
+- [x] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
 
-**B2 — Tab Mailjet**
+**B2 — Tab Mailjet** — pendiente
 
 - [ ] API Key, Secret Key, From Email, From Name visibles solo en este tab
 - [ ] Prueba de conexión Mailjet operativa desde este tab
 - [ ] Este tab no muestra lista de formularios, mappings, metadata ni rate limit
 
-**B3 — Tab Seguridad**
+**B3 — Tab Seguridad** — pendiente
 
 - [ ] Rate limit por email e IP en este tab
 - [ ] Debug logs accesibles desde este tab
