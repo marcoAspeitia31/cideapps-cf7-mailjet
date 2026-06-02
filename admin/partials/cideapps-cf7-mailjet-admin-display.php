@@ -466,33 +466,53 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 			<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) ); ?>" class="nav-tab <?php echo 'security' === $active_admin_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Seguridad', 'cideapps-cf7-mailjet' ); ?></a>
 		</h2>
 
-		<div id="mailjet-settings" class="tab-content" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'mailjet' ) ); ?>">
-			<h2><?php esc_html_e( 'Configuración de Mailjet', 'cideapps-cf7-mailjet' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'Cuenta y remitente Mailjet. La configuración de formularios está en el tab Formularios.', 'cideapps-cf7-mailjet' ); ?></p>
-			<table class="form-table">
+		<div id="mailjet-settings" class="tab-content cideapps-cf7-tab-mailjet" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'mailjet' ) ); ?>">
+			<h2><?php esc_html_e( 'Mailjet', 'cideapps-cf7-mailjet' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Conexión con tu cuenta Mailjet y remitente por defecto. Los formularios, listas y plantillas se configuran en el tab Formularios.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+
+			<?php if ( empty( $public_key ) || empty( $private_key ) ) : ?>
+				<div class="notice notice-warning inline">
+					<p>
+						<?php esc_html_e( 'Introduce la API Key y la Secret Key para habilitar envíos por Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
+
+			<h3 class="title"><?php esc_html_e( 'Credenciales', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_public_key"><?php esc_html_e( 'Public Key', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_public_key"><?php esc_html_e( 'API Key', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
-						<input type="text" id="cideapps_cf7_mailjet_public_key" name="cideapps_cf7_mailjet_public_key" value="<?php echo esc_attr( $public_key ); ?>" class="regular-text" />
+						<input type="text" id="cideapps_cf7_mailjet_public_key" name="cideapps_cf7_mailjet_public_key" value="<?php echo esc_attr( $public_key ); ?>" class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Clave pública de la API (Mailjet → Account Settings → API Keys).', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_private_key"><?php esc_html_e( 'Private Key', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_private_key"><?php esc_html_e( 'Secret Key', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
-						<input type="password" id="cideapps_cf7_mailjet_private_key" name="cideapps_cf7_mailjet_private_key" value="<?php echo esc_attr( $private_key ); ?>" class="regular-text" />
+						<input type="password" id="cideapps_cf7_mailjet_private_key" name="cideapps_cf7_mailjet_private_key" value="<?php echo esc_attr( $private_key ); ?>" class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Clave secreta de la API. No la compartas ni la expongas en el front-end.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Remitente', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description cideapps-cf7-mailjet-sender-intro">
+				<?php esc_html_e( 'Remitente por defecto para autorespuestas al usuario y para correos enviados por Mailjet API (por ejemplo notificación interna en modo Mailjet API). Debe ser un sender verificado en Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
 						<label for="cideapps_cf7_mailjet_from_email"><?php esc_html_e( 'From Email', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
 						<input type="email" id="cideapps_cf7_mailjet_from_email" name="cideapps_cf7_mailjet_from_email" value="<?php echo esc_attr( $from_email ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Email desde el cual se enviará la autorespuesta', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -501,10 +521,21 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 					</th>
 					<td>
 						<input type="text" id="cideapps_cf7_mailjet_from_name" name="cideapps_cf7_mailjet_from_name" value="<?php echo esc_attr( $from_name ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Nombre que aparecerá como remitente', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 			</table>
+
+			<p class="description cideapps-cf7-mailjet-list-test-hint">
+				<?php
+				echo wp_kses_post(
+					sprintf(
+						/* translators: %s: link to Forms tab global list settings. */
+						__( 'Para guardar contactos en una lista o <strong>probar la conexión</strong> con un contacto de prueba, abre %s.', 'cideapps-cf7-mailjet' ),
+						'<a href="' . esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-site-settings' ) . '">' . esc_html__( 'Formularios → Configuración global del sitio → Lista Mailjet', 'cideapps-cf7-mailjet' ) . '</a>'
+					)
+				);
+				?>
+			</p>
 		</div>
 
 		<div id="forms-settings" class="tab-content" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'forms' ) ); ?>">

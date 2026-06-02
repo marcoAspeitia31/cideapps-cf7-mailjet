@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B1 cerrado**; siguiente fase **B2**).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B2 cerrado** en código; siguiente fase **B3**).
 
 ---
 
@@ -46,7 +46,8 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
 | v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (sección 15) |
 | v1.4.0 — Epic B1 shell admin (3 tabs) | OK | Validado staging junio 2026; sección 16 |
-| v1.4.0 — Rediseño UX/Admin (restante) | En curso | B2–G pendientes; `ACTIVIDADES-FUTURAS.md` |
+| v1.4.0 — Epic B2 tab Mailjet aislado | OK | QA estático código junio 2026; sección 16 |
+| v1.4.0 — Rediseño UX/Admin (restante) | En curso | B3–G pendientes; `ACTIVIDADES-FUTURAS.md` |
 
 ---
 
@@ -495,11 +496,15 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Guardar configuración desde cada tab no borra datos guardados en otros tabs
 - [x] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
 
-**B2 — Tab Mailjet** — pendiente
+**B2 — Tab Mailjet** — **validado** (revisión estática código, junio 2026; confirmar guardado en staging si se desea)
 
-- [ ] API Key, Secret Key, From Email, From Name visibles solo en este tab
-- [ ] Prueba de conexión Mailjet operativa desde este tab
-- [ ] Este tab no muestra lista de formularios, mappings, metadata ni rate limit
+- [x] Tab Mailjet muestra únicamente API Key, Secret Key, From Email y From Name
+- [x] Subsecciones **Credenciales** y **Remitente** visibles y agrupadas
+- [x] Copy del remitente aclara autorespuestas y envíos vía Mailjet API
+- [x] La prueba de lista **no** está en Mailjet; sigue en Formularios → Configuración global → Lista Mailjet (botón ~línea 714 del partial)
+- [x] Copy y enlace orientativo desde Mailjet hacia Formularios (prueba de lista / List ID)
+- [x] POST handler y `name` de inputs sin cambios (`cideapps_cf7_mailjet_public_key`, `_private_key`, `_from_email`, `_from_name`)
+- [x] No muestra formularios, mappings, metadata, rate limit, autorespuesta ni lista en `#mailjet-settings`
 
 **B3 — Tab Seguridad** — pendiente
 

@@ -49,3 +49,23 @@
 .cideapps-cf7-admin-form-detail .title {
 	margin-top: 1.5em;
 }
+
+.cideapps-cf7-tab-mailjet .title {
+	margin: 1.75em 0 0.5em;
+	padding: 0;
+	font-size: 1.05em;
+}
+
+.cideapps-cf7-tab-mailjet .title:first-of-type {
+	margin-top: 1em;
+}
+
+.cideapps-cf7-mailjet-sender-intro {
+	margin: 0 0 0.5em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-mailjet-list-test-hint {
+	margin-top: 1.25em;
+	max-width: 720px;
+}
