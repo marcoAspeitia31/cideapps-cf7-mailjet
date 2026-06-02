@@ -2,9 +2,9 @@
 
 Documento de validación manual del plugin. Incluye pruebas del plan original y las realizadas durante el desarrollo (modos de envío, notificación al negocio, variables Mailjet, metadata, mapeos dinámicos y adjuntos).
 
-**Versión plugin probada:** 1.3.2 (tag `v1.3.2`)  
-**Última actualización:** mayo 2026  
-**Estado:** Etapa v1.3.1 **completada** (staging + producción). Sprint mantenimiento: **Fase 1** y **Fase 2** validadas en QA (§11–12); **Fase 3** documentación en `docs/GUIA-DESPLIEGUE-CLIENTE.md` (§13). Siguiente: **Fase 4** código (`ACTIVIDADES-FUTURAS.md`).
+**Versión plugin probada:** 1.3.4 (`v1.3.4` — selector campos CF7)  
+**Última actualización:** junio 2026  
+**Estado:** Etapa v1.3.1 **completada** (staging + producción). Tag `v1.3.3` = refactor canal notificación (§14). **v1.3.4** selector campos CF7 validado (§15). Siguiente roadmap: **configuración avanzada por formulario CF7** (`ACTIVIDADES-FUTURAS.md` §2).
 
 ---
 
@@ -42,6 +42,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Fase 2 — Uninstall limpio y seguro | OK | Commit de código Fase 2; validado en servidor de pruebas mayo 2026 (§12) |
 | Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
 | Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
+| v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (§15) |
 
 ---
 
@@ -399,7 +400,7 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 | Instalar en cliente nuevo | `docs/GUIA-DESPLIEGUE-CLIENTE.md` §9 |
 | Cambios por versión | `CHANGELOG.md` |
 
-**Fase 4 pendiente:** propiedades avanzadas Mailjet en código (`ACTIVIDADES-FUTURAS.md` §1).
+**Roadmap siguiente:** configuración avanzada por formulario CF7 (`ACTIVIDADES-FUTURAS.md` §2). Propiedades avanzadas en lista Mailjet: prioridad media (`ACTIVIDADES-FUTURAS.md` §4).
 
 ---
 
@@ -433,6 +434,33 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 - [x] Canal `cf7_mail` no dispara notificación interna por Mailjet
 - [x] Lista, autorespuesta, metadata y adjuntos mantienen comportamiento
+
+---
+
+## 15. v1.3.4 — Selector visual de campos CF7
+
+**Release:** `v1.3.4` (distinto de `v1.3.3`, que corresponde al refactor del canal de notificación interna — §14).  
+**Alcance:** admin únicamente; lectura de tags CF7 vía `scan_form_tags()`; mismas options globales de mapping. Sin cambios en handler de envío, Mailjet API ni estructura de option names.  
+**Commit (código):** `feat(admin): add CF7 field selector for Mailjet mappings`  
+**Commit (docs):** `docs: document v1.3.4 CF7 field selector QA`  
+**Entorno:** staging / desarrollo local, junio 2026  
+**Resultado:** **validación exitosa**.
+
+### Checklist QA validado
+
+- [x] Los dropdowns muestran correctamente los campos reales detectados desde CF7
+- [x] La fila **Campos CF7 detectados** refleja la fuente y el conteo correcto de nombres únicos
+- [x] Al cambiar formularios habilitados y guardar, la lista se actualiza (recarga de página, sin JS)
+- [x] Los valores previamente guardados que ya no existen en CF7 se conservan y siguen apareciendo seleccionados (`valor guardado`)
+- [x] No se detectaron regresiones en autorespuesta, lista, metadata, adjuntos ni runtime
+
+### Detalle adicional (admin)
+
+- [x] Con CF7 activo, los cinco mappings principales usan `<select>`; sin CF7, inputs de texto legacy
+- [x] Cada opción del dropdown muestra `nombre (tipo)` según el tag CF7
+- [x] Sin formularios habilitados: se listan campos de todos los formularios CF7 del sitio
+- [x] Opción **— Sin asignar —** permite vaciar un mapping
+- [x] Mapeos dinámicos y canal por formulario sin cambios en esta versión
 
 ---
 

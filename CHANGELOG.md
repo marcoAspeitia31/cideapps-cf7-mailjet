@@ -5,6 +5,26 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.4] - 2026-05-28
+
+### Added
+
+- Selector visual de campos CF7 en la configuración de mappings principales.
+- Detección automática de tags reales de Contact Form 7 mediante `scan_form_tags()`.
+- Compatibilidad con valores previamente guardados aunque ya no existan en el formulario activo.
+
+### Changed
+
+- Los mappings principales ahora pueden seleccionarse desde dropdowns cuando CF7 está disponible.
+- La configuración sigue conservando los mismos option names para mantener compatibilidad.
+
+### QA
+
+- Validado que los campos detectados aparecen correctamente.
+- Validado que al cambiar formularios habilitados y guardar, la lista se actualiza.
+- Validado que valores guardados ausentes se conservan.
+- Validado que no hay regresiones en autorespuesta, lista, metadata, adjuntos ni runtime.
+
 ## [1.3.3] - 2026-05-28
 
 ### Changed

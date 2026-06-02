@@ -1,163 +1,357 @@
 # Actividades futuras — Cideapps CF7 Mailjet
 
-Documento de seguimiento **posterior al cierre de la etapa de desarrollo** (v1.3.1).  
-Lo validado en staging y producción está en `PRUEBAS-MANUALES.md`. La arquitectura técnica en `DESARROLLO.md`.
+Documento de seguimiento posterior al cierre del desarrollo base del plugin.
+
+La validación funcional se encuentra en `PRUEBAS-MANUALES.md`.
+La arquitectura técnica y decisiones internas en `DESARROLLO.md`.
 
 ---
 
-## Sprint mantenimiento — mapa de fases
+# Estado actual del plugin
 
-| Fase | Alcance | Estado | Referencia |
-|------|---------|--------|------------|
-| **1** | Limpieza automática de adjuntos (cron + retención) | Completada | `PRUEBAS-MANUALES.md` §11 |
-| **2** | `uninstall.php` limpio (options, transients, cron; uploads opt-in) | Completada | `PRUEBAS-MANUALES.md` §12 |
-| **3** | Guía de despliegue por cliente + `CHANGELOG.md` | Completada (docs) | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` |
-| **3.1** | Refactor: simplificar canal de notificación interna | Completada | `PRUEBAS-MANUALES.md` §14 |
-| **4** | Propiedades avanzadas en lista Mailjet (código) | Pendiente | §1 abajo |
+## Funcionalidades completadas
 
-Tag de release del sprint (hasta Fase 2 en código): **`v1.3.2`**.
-
----
-
-## Estado actual
-
-| Ámbito | Estado |
-|--------|--------|
-| Integración CF7 ↔ Mailjet (lista, autorespuesta) | Completado |
-| Modos `cf7_mail` / `mailjet_only` | Completado y probado (VPS IONOS + cPanel) |
-| Notificación al negocio (template + HTML, Reply-To lead) | Completado |
-| Variables core, metadata, dinámicos, adjuntos URLs | Completado |
-| QA manual | Completado |
-
-**El plugin está listo para uso en clientes** con la configuración documentada. Lo siguiente es mejora continua, no bloqueante.
+| Área                                                        | Estado     |
+| ----------------------------------------------------------- | ---------- |
+| Integración Contact Form 7 ↔ Mailjet                        | Completado |
+| Canal de notificación interna (`cf7_mail` / `mailjet_only`) | Completado |
+| Autorespuesta Mailjet                                       | Completado |
+| Notificación interna al negocio                             | Completado |
+| Variables dinámicas y metadata                              | Completado |
+| Adjuntos por URL                                            | Completado |
+| Limpieza automática de adjuntos                             | Completado |
+| Desinstalación limpia (`uninstall.php`)                     | Completado |
+| Guía de despliegue y changelog                              | Completado |
+| QA manual staging / producción                              | Completado |
+| Refactor UX del canal de notificación interna               | Completado |
+| Selector visual de campos CF7 (dropdowns, PHP-only)         | Completado |
 
 ---
 
-## Prioridad alta (recomendado para operación en clientes)
+# Releases
 
-### 1. Propiedades extra en lista Mailjet — **pendiente (Fase 4)**
-
-`DESARROLLO.md` menciona `source`, `form_id`, `created_at` en contactos; hoy solo se envían `name`, `phone`, `service`.
-
-- Definir qué propiedades existen en la cuenta Mailjet del cliente
-- Mapearlas en `build_contact_properties()`
-- Documentar en plantilla de onboarding
-
-**Beneficio:** segmentación y trazabilidad en Mailjet sin depender solo del correo.
-
-### 2. Limpieza de archivos subidos — **hecho (Fase 1, mayo 2026)**
-
-- Commit: `817de74` — cron `cideapps_cf7_mailjet_upload_cleanup`, option `cideapps_cf7_mailjet_attachment_retention_days`
-- QA manual: `PRUEBAS-MANUALES.md` §11 (validación exitosa en staging local)
-
-**Beneficio:** evita llenar disco en sitios con muchos formularios con file.
-
-### 3. `uninstall.php` y desinstalación limpia — **hecho (Fase 2, mayo 2026)**
-
-- Commit: `feat(uninstall): clean plugin options on uninstall`
-- QA manual: `PRUEBAS-MANUALES.md` §12 (validación exitosa en servidor de pruebas)
-
-**Beneficio:** sitios limpios al quitar el plugin en agencias, sin tocar datos ajenos.
-
-### 4. Guía de despliegue por cliente — **hecho (Fase 3, mayo 2026)**
-
-- Documento: `docs/GUIA-DESPLIEGUE-CLIENTE.md`
-- Historial de versiones: `CHANGELOG.md`
-- Checklist de despliegue en la guía (no duplicar en `PRUEBAS-MANUALES.md`)
-
-**Beneficio:** reutilización multi-sitio sin releer el hilo de desarrollo.
+| Release  | Descripción                                                    |
+| -------- | -------------------------------------------------------------- |
+| `v1.3.1` | Cierre etapa funcional principal                               |
+| `v1.3.2` | Sprint mantenimiento (uploads + uninstall)                     |
+| `v1.3.3` | Refactor UX y canal de notificación interna                    |
+| `v1.3.4` | Selector visual de campos CF7 (dropdowns desde tags reales)  |
 
 ---
 
-## Prioridad media (producto / UX)
+# Roadmap prioritario (valor comercial)
 
-### 5. Configuración por formulario CF7
+Las siguientes actividades se priorizan por:
 
-Hoy casi todo es global (mapeos, metadata, adjuntos).
-
-- Mapeos y modo de envío ya son por formulario; extender metadata/adjuntos por ID de formulario si un sitio tiene varios CF7 distintos
-
-### 6. Selector de campos CF7 en admin
-
-En lugar de escribir a mano `your-email`, listar tags del formulario habilitado (dropdown).
-
-**Beneficio:** menos errores de configuración para clientes no técnicos.
-
-### 7. Más mail-tags CF7
-
-Ampliar soporte más allá de `[_remote_ip]`, `[_user_agent]`, `[_url]`, `[_date]`, `[_time]` (p. ej. `[_post_title]`, `[_site_title]`).
-
-### 8. Adjuntos: opciones de privacidad
-
-- Enlaces firmados con expiración (transient + endpoint PHP)
-- Opción “registrar en Media Library” además de carpeta del plugin
-- Reglas nginx equivalentes al `.htaccess` actual (Apache)
-
-### 9. Internacionalización (i18n)
-
-Unificar cadenas admin (Add/Remove vs Añadir/Quitar) y preparar `.pot` si el plugin se distribuye.
-
-### 10. Settings API de WordPress
-
-Migrar guardado manual del admin a Settings API + sanitización centralizada (opcional; el flujo actual funciona).
+* facilidad de configuración,
+* reducción de errores humanos,
+* reutilización multi-cliente,
+* experiencia de usuario en admin,
+* y valor operativo real para agencias.
 
 ---
 
-## Prioridad baja (nice to have)
+# Prioridad alta
 
-### 11. Tests automatizados
+## 1. Selector visual de campos CF7 — **Completado**
 
-- PHPUnit para `Submission_Data` (mapeos, metadata, URLs)
-- Tests de integración mock de Mailjet API
+**Estado:** implementado y validado en release `v1.3.4` (junio 2026). QA en `PRUEBAS-MANUALES.md` §15. La tag `v1.3.3` corresponde únicamente al refactor del canal de notificación interna.
 
-### 12. Exportar / importar configuración
+### Entregado en v1.3.4
 
-JSON de opciones del plugin para clonar setup entre staging y producción.
+* Dropdowns en admin para mappings globales (`email`, `name`, `phone`, `service`, `message`).
+* Lectura de tags con `scan_form_tags()` vía `Cideapps_Cf7_Mailjet_Cf7_Field_Selector`.
+* Fuente: formularios habilitados, o todos los CF7 si ninguno está habilitado.
+* Valores guardados inexistentes en el formulario: opción `(valor guardado)`.
+* Iteración mínima: solo PHP (sin JS, CSS nuevo, AJAX ni transients).
 
-### 13. Panel de estado en admin
+### Mejoras diferidas (no bloquean la siguiente fase)
 
-Último envío procesado, último error API, enlace a logs si `debug_logs` activo.
-
-### 14. Webhooks / eventos
-
-Hook `cideapps_cf7_mailjet_after_submission` para CRM externos (Zapier, n8n) sin microservicio.
-
-### 15. Multisite
-
-Opciones por sitio en red WordPress.
-
-### 16. README público del plugin
-
-Actualizar `README.txt` (WordPress.org style) con features reales, no boilerplate wppb.
+* Refresco de dropdowns sin recargar página (JS).
+* Selectores por formulario individual (ver §2).
+* Entrada manual explícita además del desplegable.
+* Filtrado por tipo de tag (email vs textarea) en la UI.
 
 ---
 
-## Mantenimiento y releases
+## 2. Configuración avanzada por formulario CF7 — **Siguiente**
 
-| Actividad | Cuándo |
-|-----------|--------|
-| Tag git `v1.3.2` en remoto | Hecho (sprint Fase 1–2) |
-| Changelog (`CHANGELOG.md`) | Iniciado en Fase 3; actualizar en cada release |
-| Revisar compatibilidad CF7 / WP al actualizar dependencias | Trimestral o antes de deploy cliente |
-| Revisar límites API Mailjet (variables, tamaño) | Si plantillas crecen mucho |
+Actualmente varias configuraciones siguen siendo globales.
+
+### Objetivo
+
+Permitir configuración independiente por formulario:
+
+* template Mailjet
+* lista Mailjet
+* canal de notificación interna
+* metadata
+* adjuntos
+* mappings dinámicos
+* autorespuesta
+
+### Casos de uso
+
+Un mismo sitio podría tener:
+
+* formulario contacto
+* cotización
+* soporte
+* bolsa de trabajo
+* leads comerciales
+* descarga de recursos
+
+cada uno con comportamiento distinto.
+
+### Beneficios
+
+* Escalabilidad multi-formulario.
+* Mejor reutilización entre clientes.
+* Arquitectura más modular.
 
 ---
 
-## Qué no está en alcance (decisión explícita)
+## 3. Mejoras UX para mappings dinámicos
 
-- Microservicio externo (ver `DESARROLLO.md`)
-- Adjuntos binarios embebidos en API Mailjet (solo URLs)
-- Sustituir por completo Flamingo / almacén CF7 de entradas
-- Modificar el theme del cliente
+Actualmente parte de los mappings y variables siguen siendo técnicos.
+
+### Objetivo
+
+Mejorar experiencia visual para:
+
+* mappings dinámicos
+* variables Mailjet
+* metadata
+* adjuntos
+* labels de servicios
+
+### Posibles mejoras
+
+* botones añadir/eliminar más claros
+* agrupación visual por secciones
+* tooltips
+* validaciones inline
+* placeholders inteligentes
+
+### Beneficio
+
+Reducir complejidad percibida del plugin.
 
 ---
 
-## Resumen ejecutivo
+## 4. Más soporte de mail-tags CF7
 
-1. **Etapa v1.3.1:** cerrada (tag `v1.3.1`).  
-2. **Sprint mantenimiento:** Fases 1–3 **completadas** (código Fase 1–2 + docs Fase 3); QA funcional en `PRUEBAS-MANUALES.md` §11–12.  
-3. **Refactor previo a Fase 4:** canal de notificación interna simplificado (sin checkbox redundante) — validado en `PRUEBAS-MANUALES.md` §14.  
-4. **Siguiente:** Fase 4 propiedades Mailjet (solo código, un commit / validación).  
-5. **Backlog:** UX admin, más mail-tags, privacidad adjuntos, tests.
+Actualmente se soportan:
 
-Para retomar trabajo, abrir este archivo y elegir ítems por prioridad con el cliente o product owner.
+```txt
+[_remote_ip]
+[_user_agent]
+[_url]
+[_date]
+[_time]
+```
+
+### Expandir soporte a:
+
+```txt
+[_post_title]
+[_site_title]
+[_site_url]
+[_serial_number]
+[_post_url]
+```
+
+### Beneficios
+
+* Templates Mailjet más ricos.
+* Mejor trazabilidad.
+* Correos internos más útiles.
+
+---
+
+# Prioridad media
+
+## 5. Propiedades avanzadas en Mailjet
+
+Enviar propiedades adicionales al contacto:
+
+```txt
+source
+form_id
+created_at
+landing_url
+browser
+visitor_ip
+```
+
+### Beneficios
+
+* Segmentación avanzada.
+* Automatizaciones futuras.
+* Mejor contexto comercial.
+* Integración CRM más útil.
+
+---
+
+## 6. Exportar / importar configuración
+
+Permitir exportar settings del plugin en JSON.
+
+### Casos de uso
+
+* staging → producción
+* replicar configuración entre clientes
+* backups rápidos
+
+### Beneficios
+
+* Despliegues más rápidos.
+* Menos errores manuales.
+
+---
+
+## 7. Panel de estado del plugin
+
+Mostrar:
+
+* último envío exitoso
+* último error API
+* estado Mailjet
+* último cron ejecutado
+* acceso rápido a logs
+
+### Beneficios
+
+* Menos debugging manual.
+* Mejor soporte técnico.
+* Más visibilidad operativa.
+
+---
+
+## 8. Internacionalización (i18n)
+
+Preparar:
+
+* `.pot`
+* español
+* inglés
+
+### Objetivo
+
+Facilitar distribución futura del plugin.
+
+---
+
+# Prioridad baja / futura
+
+## 9. Webhooks y eventos
+
+Hooks tipo:
+
+```php
+do_action(
+  'cideapps_cf7_mailjet_after_submission',
+  $submission_data
+);
+```
+
+### Integraciones posibles
+
+* n8n
+* Zapier
+* CRM externos
+* microservicios
+* automatizaciones internas
+
+---
+
+## 10. Tests automatizados
+
+### Objetivo
+
+Agregar:
+
+* PHPUnit
+* mocks Mailjet
+* tests integración
+
+---
+
+## 11. Compatibilidad multisite
+
+Configuración por sitio WordPress Network.
+
+---
+
+## 12. README público del plugin
+
+Actualizar documentación estilo WordPress.org.
+
+---
+
+# Actividades descartadas o no prioritarias
+
+Estas ideas se consideran fuera del enfoque inmediato del producto o de bajo valor comercial actual.
+
+---
+
+## Adjuntos privados con URLs firmadas
+
+Pospuesto.
+
+### Razones
+
+* Mayor complejidad técnica.
+* Poco impacto comercial inmediato.
+* URLs públicas actuales son suficientes para la mayoría de clientes.
+
+---
+
+## Endpoint temporal de descarga protegida
+
+Pospuesto para futura versión enterprise/premium.
+
+---
+
+## Reglas avanzadas nginx para adjuntos
+
+No prioritario actualmente.
+
+---
+
+# Mantenimiento recomendado
+
+| Actividad                        | Frecuencia               |
+| -------------------------------- | ------------------------ |
+| Revisar compatibilidad CF7       | Trimestral               |
+| Revisar compatibilidad WordPress | Trimestral               |
+| Revisar límites Mailjet          | Cuando crezcan templates |
+| Actualizar CHANGELOG             | Cada release             |
+| QA manual completo               | Antes de deploy cliente  |
+
+---
+
+# Resumen ejecutivo
+
+El plugin ya se considera estable y reutilizable para clientes reales.
+
+**Completado recientemente:** selector visual de campos CF7 (`v1.3.4`).
+
+**Siguiente fase recomendada:** configuración avanzada por formulario CF7 (§2 de este documento), reutilizando `Cideapps_Cf7_Mailjet_Cf7_Field_Selector` para dropdowns por `form_id` sin duplicar la lógica global existente.
+
+Las siguientes etapas deben enfocarse principalmente en:
+
+1. Configuración avanzada por formulario CF7 (prioridad inmediata).
+2. Simplificar aún más la configuración y reducir errores humanos.
+3. Mejorar experiencia de administración en mappings dinámicos y metadata.
+4. Escalar correctamente a múltiples formularios en un mismo sitio.
+5. Fortalecer reutilización entre clientes/agencia.
+
+Las futuras funcionalidades deben priorizar:
+
+* valor operativo real,
+* facilidad de uso,
+* claridad UX,
+* y mantenibilidad,
+
+antes que complejidad técnica innecesaria.

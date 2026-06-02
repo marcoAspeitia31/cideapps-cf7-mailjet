@@ -60,11 +60,13 @@ class Cideapps_Cf7_Mailjet_Submission_Data {
 	 * @return array Keys: name, email, phone, service, message (strings).
 	 */
 	public function extract_core_fields( $contact_form, $posted_data, $handler ) {
-		$email_field   = get_option( 'cideapps_cf7_mailjet_email_field', 'your-email' );
-		$name_field    = get_option( 'cideapps_cf7_mailjet_name_field', 'your-name' );
-		$phone_field   = get_option( 'cideapps_cf7_mailjet_phone_field', 'your-phone' );
-		$service_field = get_option( 'cideapps_cf7_mailjet_service_field', 'service' );
-		$message_field = get_option( 'cideapps_cf7_mailjet_message_field', 'your-message' );
+		$form_id = (int) $contact_form->id();
+
+		$email_field   = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id, 'email_field' );
+		$name_field    = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id, 'name_field' );
+		$phone_field   = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id, 'phone_field' );
+		$service_field = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id, 'service_field' );
+		$message_field = Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id, 'message_field' );
 
 		$email = isset( $posted_data[ $email_field ] ) ? sanitize_email( $posted_data[ $email_field ] ) : '';
 		$name  = isset( $posted_data[ $name_field ] ) ? sanitize_text_field( $posted_data[ $name_field ] ) : '';

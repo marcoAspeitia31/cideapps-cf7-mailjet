@@ -149,6 +149,11 @@ class Cideapps_Cf7_Mailjet {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-logger.php';
 
 		/**
+		 * Per-form field mapping settings (resolver with global fallback).
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-form-settings.php';
+
+		/**
 		 * The class responsible for extracting CF7 submission data for Mailjet.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cideapps-cf7-mailjet-submission-data.php';
