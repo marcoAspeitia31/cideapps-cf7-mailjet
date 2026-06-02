@@ -563,7 +563,7 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 					<td>
 						<?php if ( ! empty( $cf7_forms ) ) : ?>
 							<p class="description" style="margin: 0 0 12px;">
-								<?php esc_html_e( 'Esta configuración se guardará por formulario. Su aplicación en envíos se conectará en el siguiente paso de esta misma fase.', 'cideapps-cf7-mailjet' ); ?>
+								<?php esc_html_e( 'Los formularios con mappings propios aplican esa configuración al procesar envíos. El resto usa los mappings globales.', 'cideapps-cf7-mailjet' ); ?>
 							</p>
 							<?php
 							$per_form_mapping_labels = array(
