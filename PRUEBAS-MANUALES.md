@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin** (sin nuevas features técnicas hasta cerrar esta etapa). Roadmap: `ACTIVIDADES-FUTURAS.md` (Epics A–G). Checklist QA v1.4: **sección 16** de este archivo (pendiente de implementación).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic B1 implementado — validación manual pendiente).
 
 ---
 
@@ -484,11 +484,15 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ### Epic B — Navegación (3 tabs)
 
-**B1 — Shell Mailjet | Formularios | Seguridad**
+**B1 — Shell Mailjet | Formularios | Seguridad** — implementado junio 2026 (pendiente validación manual en staging)
 
-- [ ] Solo existen tres tabs principales (o equivalente claro); no se pierden opciones respecto a v1.3.4
-- [ ] Guardar configuración desde cada tab no borra datos guardados en otros tabs
-- [ ] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
+- [x] Solo existen tres tabs principales (Mailjet, Formularios, Seguridad); tabs Autorespuesta/Lista/CF7 eliminados como navegación raíz
+- [x] Navegación por query args (`tab`, `form_id`); tab por defecto Formularios
+- [x] Contenedores `#forms-list` y `#form-detail`; notificación interna solo en detalle
+- [x] Global autorespuesta/lista en `<details>`; retención en tab Seguridad (markup)
+- [x] POST handler sin cambios (revisión estática código)
+- [ ] Guardar configuración desde cada tab no borra datos guardados en otros tabs *(validar en WP)*
+- [ ] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes *(validar en WP)*
 
 **B2 — Tab Mailjet**
 

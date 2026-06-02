@@ -7,6 +7,7 @@ Documentos relacionados:
 - Validación funcional: `PRUEBAS-MANUALES.md`
 - Arquitectura técnica: `DESARROLLO.md`
 - Reglas de trabajo del proyecto: `REGLAS-TRABAJO.md`
+- Blueprint UX admin v1.4: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`
 
 ---
 
@@ -147,22 +148,39 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 
 | Fase | Entregable |
 | ---- | ----------- |
-| A0 | Este roadmap actualizado (`ACTIVIDADES-FUTURAS.md`) |
+| A0 | Este roadmap actualizado (`ACTIVIDADES-FUTURAS.md`) — **completado** |
 | A1 | Alinear intro y checklist v1.4 en `PRUEBAS-MANUALES.md` — **completado** (sección 16) |
+
+---
+
+## Epic B0 — UX Navigation Blueprint — **completado**
+
+| Entregable | Ubicación |
+| ---------- | --------- |
+| Mapa de navegación, wireframes, flujos, riesgos UX | `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md` |
+
+**Decisiones de producto cerradas:**
+
+- Tab por defecto: **Formularios**
+- Notificación interna: solo en **detalle** (`form_id`); no en global
+- Autorespuesta / lista: **global** en v1.4.0; detalle informativo hasta v1.4.1+
+- Detalle: query args `tab=forms&form_id={id}`
 
 ---
 
 ## Epic B — Arquitectura de navegación (3 tabs)
 
-**Objetivo:** separar responsabilidades sin cambiar comportamiento del runtime.
+**Objetivo:** separar responsabilidades sin cambiar comportamiento del runtime.  
+**Referencia:** `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`
 
-| Fase | Entregable | QA esperado |
-| ---- | ----------- | ----------- |
-| B1 | Shell admin: tabs **Mailjet** \| **Formularios** \| **Seguridad** | Guardar no pierde datos existentes |
-| B2 | Tab **Mailjet** limpio: credenciales, From, prueba conexión | Conexión Mailjet operativa |
-| B3 | Tab **Seguridad** limpio: rate limit, logs, retención adjuntos, uninstall | Sin regresión en límites/logs/cron |
+| Fase | Entregable | QA esperado | Estado |
+| ---- | ----------- | ----------- | ------ |
+| B0 | Blueprint UX navegación | Aprobación producto | **Completado** |
+| B1 | Shell: tabs **Mailjet** \| **Formularios** \| **Seguridad**; `#forms-list`, `#form-detail`; query args | Guardar no pierde datos | **Implementado** — validación manual pendiente |
+| B2 | Tab **Mailjet** limpio: solo credenciales y From | Sin mezcla con formularios | Pendiente |
+| B3 | Tab **Seguridad** limpio: rate limit, logs, retención, uninstall | Sin regresión cron/logs | Pendiente |
 
-**Nota v1.4.0:** Autorespuesta y Lista pueden moverse temporalmente al detalle de formulario o quedar bajo Formularios con aviso «configuración global» hasta v1.4.1.
+**Nota v1.4.0:** Autorespuesta y lista permanecen en **configuración global del sitio** (colapsada en `#forms-list`). En `#form-detail` solo mensaje/enlace hasta persistencia per-form (v1.4.1+).
 
 ---
 

@@ -19,3 +19,33 @@
 	max-width: 320px;
 	width: 100%;
 }
+
+.tab-content {
+	margin-top: 20px;
+}
+
+.cideapps-cf7-admin-back {
+	margin: 0 0 1em;
+}
+
+.cideapps-cf7-global-site-settings {
+	margin: 1em 0 1.5em;
+	padding: 0.5em 0.75em;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.cideapps-cf7-global-site-settings summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.cideapps-cf7-form-notify-links {
+	margin: 0.5em 0 1.5em 1.5em;
+	list-style: disc;
+}
+
+.cideapps-cf7-admin-form-detail .title {
+	margin-top: 1.5em;
+}
