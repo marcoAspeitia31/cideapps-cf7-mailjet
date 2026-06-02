@@ -6,7 +6,7 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 **Última actualización:** junio 2026  
 **Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
 
-**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin** (sin nuevas features técnicas hasta cerrar esta etapa). Roadmap: `ACTIVIDADES-FUTURAS.md` (Epics A–G). Checklist QA v1.4: **sección 16** de este archivo (pendiente de implementación).
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin**. Roadmap: `ACTIVIDADES-FUTURAS.md`; blueprint: `docs/UX-NAVIGATION-BLUEPRINT-v1.4.md`. Checklist QA v1.4: **sección 16** (Epic **B3** implementado — validar en staging; **Epic C** pendiente de aprobación).
 
 ---
 
@@ -45,7 +45,10 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
 | Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
 | v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (sección 15) |
-| v1.4.0 — Rediseño UX/Admin | Pendiente | Checklist sección 16; estrategia en `ACTIVIDADES-FUTURAS.md` |
+| v1.4.0 — Epic B1 shell admin (3 tabs) | OK | Validado staging junio 2026; sección 16 |
+| v1.4.0 — Epic B2 tab Mailjet aislado | OK | Validado staging junio 2026; sección 16 |
+| v1.4.0 — Epic B3 tab Seguridad aislado | OK | QA estático código junio 2026; confirmar cron en staging |
+| v1.4.0 — Rediseño UX/Admin (restante) | En curso | Epic C–G pendientes; `ACTIVIDADES-FUTURAS.md` |
 
 ---
 
@@ -484,24 +487,35 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ### Epic B — Navegación (3 tabs)
 
-**B1 — Shell Mailjet | Formularios | Seguridad**
+**B1 — Shell Mailjet | Formularios | Seguridad** — **validado** (staging, junio 2026)
 
-- [ ] Solo existen tres tabs principales (o equivalente claro); no se pierden opciones respecto a v1.3.4
-- [ ] Guardar configuración desde cada tab no borra datos guardados en otros tabs
-- [ ] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
+- [x] Solo existen tres tabs principales (Mailjet, Formularios, Seguridad); tabs Autorespuesta/Lista/CF7 eliminados como navegación raíz
+- [x] Navegación por query args (`tab`, `form_id`); tab por defecto Formularios
+- [x] Contenedores `#forms-list` y `#form-detail`; notificación interna solo en detalle
+- [x] Global autorespuesta/lista en `<details>`; retención en tab Seguridad (markup)
+- [x] POST handler sin cambios (revisión estática código)
+- [x] Guardar configuración desde cada tab no borra datos guardados en otros tabs
+- [x] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
 
-**B2 — Tab Mailjet**
+**B2 — Tab Mailjet** — **validado** (staging, junio 2026)
 
-- [ ] API Key, Secret Key, From Email, From Name visibles solo en este tab
-- [ ] Prueba de conexión Mailjet operativa desde este tab
-- [ ] Este tab no muestra lista de formularios, mappings, metadata ni rate limit
+- [x] Tab Mailjet muestra únicamente API Key, Secret Key, From Email y From Name
+- [x] Subsecciones **Credenciales** y **Remitente** visibles y agrupadas
+- [x] Copy del remitente aclara autorespuestas y envíos vía Mailjet API
+- [x] La prueba de lista **no** está en Mailjet; sigue en Formularios → Configuración global → Lista Mailjet
+- [x] Copy y enlace orientativo desde Mailjet hacia Formularios (prueba de lista / List ID)
+- [x] Guardar desde Mailjet persiste API keys y From; otros tabs sin pérdida de datos
+- [x] No muestra formularios, mappings, metadata, rate limit, autorespuesta ni lista en `#mailjet-settings`
 
-**B3 — Tab Seguridad**
+**B3 — Tab Seguridad** — **validado** (staging, junio 2026)
 
-- [ ] Rate limit por email e IP en este tab
-- [ ] Debug logs accesibles desde este tab
-- [ ] Retención de adjuntos y opciones de uninstall en este tab
-- [ ] Cron de limpieza de adjuntos sigue programado tras guardar (sin regresión, ver sección 11)
+- [x] Tab Seguridad muestra únicamente límites de envío, depuración, retención de adjuntos y desinstalación
+- [x] Subsecciones **Límites de envío**, **Depuración**, **Adjuntos**, **Desinstalación**
+- [x] Copy de cron WP-Cron al guardar retención; uninstall vs desactivar plugin explícito
+- [x] Retención **no** editable en Formularios (solo enlace a tab Seguridad en sección Adjuntos)
+- [x] POST handler y `reschedule_cron()` sin cambios; mismos `name` de inputs de seguridad
+- [x] `#security-settings` sin credenciales, formularios habilitados, mappings, autorespuesta ni lista
+- [x] Guardar desde Seguridad persiste valores y cron de retención (sección 11)
 
 ### Epic C — Tab Formularios (lista)
 

@@ -19,3 +19,73 @@
 	max-width: 320px;
 	width: 100%;
 }
+
+.tab-content {
+	margin-top: 20px;
+}
+
+.cideapps-cf7-admin-back {
+	margin: 0 0 1em;
+}
+
+.cideapps-cf7-global-site-settings {
+	margin: 1em 0 1.5em;
+	padding: 0.5em 0.75em;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.cideapps-cf7-global-site-settings summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.cideapps-cf7-form-notify-links {
+	margin: 0.5em 0 1.5em 1.5em;
+	list-style: disc;
+}
+
+.cideapps-cf7-admin-form-detail .title {
+	margin-top: 1.5em;
+}
+
+.cideapps-cf7-tab-mailjet .title {
+	margin: 1.75em 0 0.5em;
+	padding: 0;
+	font-size: 1.05em;
+}
+
+.cideapps-cf7-tab-mailjet .title:first-of-type {
+	margin-top: 1em;
+}
+
+.cideapps-cf7-mailjet-sender-intro {
+	margin: 0 0 0.5em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-mailjet-list-test-hint {
+	margin-top: 1.25em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-tab-security .title {
+	margin: 1.75em 0 0.5em;
+	padding: 0;
+	font-size: 1.05em;
+}
+
+.cideapps-cf7-tab-security .title:first-of-type {
+	margin-top: 1em;
+}
+
+.cideapps-cf7-security-intro {
+	margin: 0 0 0.25em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-tab-security .form-table + .description,
+.cideapps-cf7-tab-security .title + .description {
+	max-width: 720px;
+}

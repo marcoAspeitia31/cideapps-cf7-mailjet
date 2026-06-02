@@ -427,48 +427,92 @@ if ( ! class_exists( 'Cideapps_Cf7_Mailjet_Upload_Cleanup' ) ) {
 	require_once dirname( dirname( dirname( __FILE__ ) ) ) . '/includes/class-cideapps-cf7-mailjet-upload-cleanup.php';
 }
 $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_days();
+
+// Admin navigation (v1.4 Epic B1) — see docs/UX-NAVIGATION-BLUEPRINT-v1.4.md.
+$allowed_admin_tabs = array( 'mailjet', 'forms', 'security' );
+$active_admin_tab   = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'forms';
+if ( ! in_array( $active_admin_tab, $allowed_admin_tabs, true ) ) {
+	$active_admin_tab = 'forms';
+}
+$form_id_view           = isset( $_GET['form_id'] ) ? (int) $_GET['form_id'] : 0;
+$show_form_detail       = $form_id_view > 0 && isset( $cf7_forms[ $form_id_view ] );
+$form_id_view_invalid   = $form_id_view > 0 && ! $show_form_detail;
+$admin_page_base        = add_query_arg( 'page', 'cideapps-cf7-mailjet', admin_url( 'options-general.php' ) );
+$admin_form_action      = add_query_arg( 'tab', $active_admin_tab, $admin_page_base );
+if ( $show_form_detail ) {
+	$admin_form_action = add_query_arg( 'form_id', $form_id_view, $admin_form_action );
+}
+$cideapps_cf7_mailjet_admin_tab_url = static function( $tab, $form_id = 0 ) use ( $admin_page_base ) {
+	$url = add_query_arg( 'tab', $tab, $admin_page_base );
+	if ( $form_id > 0 && 'forms' === $tab ) {
+		$url = add_query_arg( 'form_id', (int) $form_id, $url );
+	}
+	return $url;
+};
+$cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_admin_tab ) {
+	return $tab === $active_admin_tab ? '' : 'display:none;';
+};
 ?>
 
 <div class="wrap">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
-	<form method="post" action="">
+	<form method="post" action="<?php echo esc_url( $admin_form_action ); ?>">
 		<?php wp_nonce_field( 'cideapps_cf7_mailjet_settings', 'cideapps_cf7_mailjet_settings_nonce' ); ?>
 
 		<h2 class="nav-tab-wrapper">
-			<a href="#mailjet-settings" class="nav-tab nav-tab-active">Mailjet</a>
-			<a href="#autoreply-settings" class="nav-tab">Autorespuesta</a>
-			<a href="#list-settings" class="nav-tab">Lista</a>
-			<a href="#cf7-settings" class="nav-tab">CF7</a>
-			<a href="#security-settings" class="nav-tab">Seguridad</a>
+			<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'mailjet' ) ); ?>" class="nav-tab <?php echo 'mailjet' === $active_admin_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Mailjet', 'cideapps-cf7-mailjet' ); ?></a>
+			<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>" class="nav-tab <?php echo 'forms' === $active_admin_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Formularios', 'cideapps-cf7-mailjet' ); ?></a>
+			<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) ); ?>" class="nav-tab <?php echo 'security' === $active_admin_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Seguridad', 'cideapps-cf7-mailjet' ); ?></a>
 		</h2>
 
-		<div id="mailjet-settings" class="tab-content">
-			<h2><?php esc_html_e( 'Configuración de Mailjet', 'cideapps-cf7-mailjet' ); ?></h2>
-			<table class="form-table">
+		<div id="mailjet-settings" class="tab-content cideapps-cf7-tab-mailjet" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'mailjet' ) ); ?>">
+			<h2><?php esc_html_e( 'Mailjet', 'cideapps-cf7-mailjet' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Conexión con tu cuenta Mailjet y remitente por defecto. Los formularios, listas y plantillas se configuran en el tab Formularios.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+
+			<?php if ( empty( $public_key ) || empty( $private_key ) ) : ?>
+				<div class="notice notice-warning inline">
+					<p>
+						<?php esc_html_e( 'Introduce la API Key y la Secret Key para habilitar envíos por Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
+
+			<h3 class="title"><?php esc_html_e( 'Credenciales', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_public_key"><?php esc_html_e( 'Public Key', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_public_key"><?php esc_html_e( 'API Key', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
-						<input type="text" id="cideapps_cf7_mailjet_public_key" name="cideapps_cf7_mailjet_public_key" value="<?php echo esc_attr( $public_key ); ?>" class="regular-text" />
+						<input type="text" id="cideapps_cf7_mailjet_public_key" name="cideapps_cf7_mailjet_public_key" value="<?php echo esc_attr( $public_key ); ?>" class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Clave pública de la API (Mailjet → Account Settings → API Keys).', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_private_key"><?php esc_html_e( 'Private Key', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_private_key"><?php esc_html_e( 'Secret Key', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
-						<input type="password" id="cideapps_cf7_mailjet_private_key" name="cideapps_cf7_mailjet_private_key" value="<?php echo esc_attr( $private_key ); ?>" class="regular-text" />
+						<input type="password" id="cideapps_cf7_mailjet_private_key" name="cideapps_cf7_mailjet_private_key" value="<?php echo esc_attr( $private_key ); ?>" class="regular-text" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Clave secreta de la API. No la compartas ni la expongas en el front-end.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Remitente', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description cideapps-cf7-mailjet-sender-intro">
+				<?php esc_html_e( 'Remitente por defecto para autorespuestas al usuario y para correos enviados por Mailjet API (por ejemplo notificación interna en modo Mailjet API). Debe ser un sender verificado en Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
 						<label for="cideapps_cf7_mailjet_from_email"><?php esc_html_e( 'From Email', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
 						<input type="email" id="cideapps_cf7_mailjet_from_email" name="cideapps_cf7_mailjet_from_email" value="<?php echo esc_attr( $from_email ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Email desde el cual se enviará la autorespuesta', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -477,14 +521,136 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 					</th>
 					<td>
 						<input type="text" id="cideapps_cf7_mailjet_from_name" name="cideapps_cf7_mailjet_from_name" value="<?php echo esc_attr( $from_name ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Nombre que aparecerá como remitente', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 			</table>
+
+			<p class="description cideapps-cf7-mailjet-list-test-hint">
+				<?php
+				echo wp_kses_post(
+					sprintf(
+						/* translators: %s: link to Forms tab global list settings. */
+						__( 'Para guardar contactos en una lista o <strong>probar la conexión</strong> con un contacto de prueba, abre %s.', 'cideapps-cf7-mailjet' ),
+						'<a href="' . esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-site-settings' ) . '">' . esc_html__( 'Formularios → Configuración global del sitio → Lista Mailjet', 'cideapps-cf7-mailjet' ) . '</a>'
+					)
+				);
+				?>
+			</p>
 		</div>
 
-		<div id="autoreply-settings" class="tab-content" style="display:none;">
-			<h2><?php esc_html_e( 'Configuración de Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h2>
+		<div id="forms-settings" class="tab-content" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'forms' ) ); ?>">
+			<?php if ( $form_id_view_invalid ) : ?>
+				<div class="notice notice-warning inline"><p><?php esc_html_e( 'El formulario solicitado no existe. Se muestra la lista de formularios.', 'cideapps-cf7-mailjet' ); ?></p></div>
+			<?php endif; ?>
+
+			<div id="form-detail" class="cideapps-cf7-admin-form-detail" style="<?php echo $show_form_detail ? '' : 'display:none;'; ?>">
+				<p class="cideapps-cf7-admin-back">
+					<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>">&larr; <?php esc_html_e( 'Volver a formularios', 'cideapps-cf7-mailjet' ); ?></a>
+				</p>
+				<?php if ( $show_form_detail ) : ?>
+					<h2>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %s: CF7 form title. */
+								__( 'Formulario: %s', 'cideapps-cf7-mailjet' ),
+								$cf7_forms[ $form_id_view ]
+							)
+						);
+						?>
+						<span class="description">(ID: <?php echo esc_html( (string) $form_id_view ); ?>)</span>
+					</h2>
+					<p class="description"><?php esc_html_e( 'Vista detalle (v1.4). Más secciones se añadirán en fases siguientes. La notificación interna se edita aquí.', 'cideapps-cf7-mailjet' ); ?></p>
+
+					<h3 class="title"><?php esc_html_e( 'Notificación interna al negocio', 'cideapps-cf7-mailjet' ); ?></h3>
+					<table class="form-table">
+						<tr>
+							<th scope="row">
+								<label for="cideapps_cf7_mailjet_owner_notify_to_email"><?php esc_html_e( 'Email destino negocio', 'cideapps-cf7-mailjet' ); ?></label>
+							</th>
+							<td>
+								<input type="email" id="cideapps_cf7_mailjet_owner_notify_to_email" name="cideapps_cf7_mailjet_owner_notify_to_email" value="<?php echo esc_attr( $owner_notify_to_email ); ?>" class="regular-text" />
+								<p class="description"><?php esc_html_e( 'Correo donde recibirás los datos del lead. (Almacenamiento global en v1.4.0; per-form en v1.4.1+.)', 'cideapps-cf7-mailjet' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="cideapps_cf7_mailjet_owner_notify_mode"><?php esc_html_e( 'Modo de notificación negocio', 'cideapps-cf7-mailjet' ); ?></label>
+							</th>
+							<td>
+								<select id="cideapps_cf7_mailjet_owner_notify_mode" name="cideapps_cf7_mailjet_owner_notify_mode">
+									<option value="template" <?php selected( $owner_notify_mode, 'template' ); ?>><?php esc_html_e( 'Template ID de Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
+									<option value="html_default" <?php selected( $owner_notify_mode, 'html_default' ); ?>><?php esc_html_e( 'HTML por defecto del plugin', 'cideapps-cf7-mailjet' ); ?></option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="cideapps_cf7_mailjet_owner_notify_template_id"><?php esc_html_e( 'Template ID negocio', 'cideapps-cf7-mailjet' ); ?></label>
+							</th>
+							<td>
+								<input type="number" id="cideapps_cf7_mailjet_owner_notify_template_id" name="cideapps_cf7_mailjet_owner_notify_template_id" value="<?php echo esc_attr( $owner_notify_template_id ); ?>" class="regular-text" />
+								<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "Template ID de Mailjet".', 'cideapps-cf7-mailjet' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="cideapps_cf7_mailjet_owner_notify_subject"><?php esc_html_e( 'Asunto (HTML por defecto)', 'cideapps-cf7-mailjet' ); ?></label>
+							</th>
+							<td>
+								<input type="text" id="cideapps_cf7_mailjet_owner_notify_subject" name="cideapps_cf7_mailjet_owner_notify_subject" value="<?php echo esc_attr( $owner_notify_subject ); ?>" class="regular-text" />
+								<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "HTML por defecto del plugin".', 'cideapps-cf7-mailjet' ); ?></p>
+							</td>
+						</tr>
+					</table>
+
+					<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
+					<p class="description">
+						<?php
+						if ( $enable_autoreply ) {
+							echo esc_html(
+								sprintf(
+									/* translators: %d: Mailjet template ID. */
+									__( 'Activa a nivel del sitio. Template ID: %d.', 'cideapps-cf7-mailjet' ),
+									(int) $template_id
+								)
+							);
+						} else {
+							esc_html_e( 'Desactivada a nivel del sitio.', 'cideapps-cf7-mailjet' );
+						}
+						?>
+						<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>#cideapps-cf7-global-site-settings"><?php esc_html_e( 'Editar configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+					</p>
+
+					<h3 class="title"><?php esc_html_e( 'Lista Mailjet', 'cideapps-cf7-mailjet' ); ?></h3>
+					<p class="description">
+						<?php
+						if ( $enable_contact_list ) {
+							echo esc_html(
+								sprintf(
+									/* translators: %d: Mailjet list ID. */
+									__( 'Activa a nivel del sitio. List ID: %d.', 'cideapps-cf7-mailjet' ),
+									(int) $list_id
+								)
+							);
+						} else {
+							esc_html_e( 'Desactivada a nivel del sitio.', 'cideapps-cf7-mailjet' );
+						}
+						?>
+						<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>#cideapps-cf7-global-site-settings"><?php esc_html_e( 'Editar configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+					</p>
+				<?php endif; ?>
+			</div>
+
+			<div id="forms-list" class="cideapps-cf7-admin-forms-list" style="<?php echo $show_form_detail ? 'display:none;' : ''; ?>">
+				<h2><?php esc_html_e( 'Formularios', 'cideapps-cf7-mailjet' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Configura cada formulario de Contact Form 7. La tabla de formularios llegará en una fase siguiente.', 'cideapps-cf7-mailjet' ); ?></p>
+
+				<details id="cideapps-cf7-global-site-settings" class="cideapps-cf7-global-site-settings">
+					<summary><?php esc_html_e( 'Configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></summary>
+					<p class="description"><?php esc_html_e( 'Valores que aplican a todo el sitio. La notificación interna al negocio se configura por formulario (enlaces más abajo).', 'cideapps-cf7-mailjet' ); ?></p>
+
+					<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Habilitar Autorespuesta', 'cideapps-cf7-mailjet' ); ?></th>
@@ -505,10 +671,8 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 					</td>
 				</tr>
 			</table>
-		</div>
 
-		<div id="list-settings" class="tab-content" style="display:none;">
-			<h2><?php esc_html_e( 'Configuración de Lista', 'cideapps-cf7-mailjet' ); ?></h2>
+					<h3 class="title"><?php esc_html_e( 'Lista Mailjet', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Habilitar Lista de Contactos', 'cideapps-cf7-mailjet' ); ?></th>
@@ -553,10 +717,34 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 					</td>
 				</tr>
 			</table>
-		</div>
+				</details>
 
-		<div id="cf7-settings" class="tab-content" style="display:none;">
-			<h2><?php esc_html_e( 'Configuración de Contact Form 7', 'cideapps-cf7-mailjet' ); ?></h2>
+					<h3 class="title"><?php esc_html_e( 'Notificación interna por formulario', 'cideapps-cf7-mailjet' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'La notificación al negocio no se configura en el bloque global. Abre cada formulario:', 'cideapps-cf7-mailjet' ); ?></p>
+					<?php if ( ! empty( $cf7_forms ) ) : ?>
+						<ul class="cideapps-cf7-form-notify-links">
+							<?php foreach ( $cf7_forms as $notify_form_id => $notify_form_title ) : ?>
+								<li>
+									<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms', (int) $notify_form_id ) ); ?>">
+										<?php
+										echo esc_html(
+											sprintf(
+												/* translators: 1: form title, 2: form ID. */
+												__( '%1$s (ID: %2$d) — Configurar notificación', 'cideapps-cf7-mailjet' ),
+												$notify_form_title,
+												(int) $notify_form_id
+											)
+										);
+										?>
+									</a>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php else : ?>
+						<p><?php esc_html_e( 'No hay formularios CF7.', 'cideapps-cf7-mailjet' ); ?></p>
+					<?php endif; ?>
+
+					<h3 class="title"><?php esc_html_e( 'Formularios Contact Form 7', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Formularios Habilitados', 'cideapps-cf7-mailjet' ); ?></th>
@@ -888,8 +1076,75 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 							<code>{{var:attachments_all}}</code>
 							<?php esc_html_e( 'con todas las URLs.', 'cideapps-cf7-mailjet' ); ?>
 						</p>
+						<p class="description">
+							<?php
+							echo wp_kses_post(
+								sprintf(
+									/* translators: %s: link to Security settings tab. */
+									__( 'La retención y limpieza de archivos se configura en <a href="%s">Seguridad</a>.', 'cideapps-cf7-mailjet' ),
+									esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) )
+								)
+							);
+							?>
+						</p>
 					</td>
 				</tr>
+			</table>
+			</div><!-- #forms-list -->
+		</div><!-- #forms-settings -->
+
+		<div id="security-settings" class="tab-content cideapps-cf7-tab-security" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'security' ) ); ?>">
+			<h2><?php esc_html_e( 'Seguridad', 'cideapps-cf7-mailjet' ); ?></h2>
+			<p class="description cideapps-cf7-security-intro">
+				<?php esc_html_e( 'Operación, protección y mantenimiento del plugin. No configura Mailjet, formularios, plantillas ni envíos.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+
+			<h3 class="title"><?php esc_html_e( 'Límites de envío', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'Reduce envíos abusivos repetidos desde el mismo contacto o la misma IP. Usa 0 para desactivar cada límite.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="cideapps_cf7_mailjet_rate_limit_email_minutes"><?php esc_html_e( 'Rate limit por email (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="cideapps_cf7_mailjet_rate_limit_email_minutes" name="cideapps_cf7_mailjet_rate_limit_email_minutes" value="<?php echo esc_attr( $rate_limit_email_minutes ); ?>" class="small-text" min="0" />
+						<p class="description"><?php esc_html_e( 'Tiempo mínimo entre dos envíos con el mismo email del formulario.', 'cideapps-cf7-mailjet' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cideapps_cf7_mailjet_rate_limit_ip_minutes"><?php esc_html_e( 'Rate limit por IP (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="cideapps_cf7_mailjet_rate_limit_ip_minutes" name="cideapps_cf7_mailjet_rate_limit_ip_minutes" value="<?php echo esc_attr( $rate_limit_ip_minutes ); ?>" class="small-text" min="0" />
+						<p class="description"><?php esc_html_e( 'Tiempo mínimo entre dos envíos desde la misma dirección IP.', 'cideapps-cf7-mailjet' ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Depuración', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Debug logs', 'cideapps-cf7-mailjet' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, true ); ?> />
+							<?php esc_html_e( 'Habilitar logs de depuración en el log de PHP', 'cideapps-cf7-mailjet' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'Escribe entradas con el prefijo [CIDEAPPS-CF7-MAILJET] en el error_log configurado en el servidor (por ejemplo wp-content/debug.log si WP_DEBUG_LOG está activo).', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+					</td>
+				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'Limpieza de copias en uploads/cideapps-cf7-mailjet/ creadas para enlaces en correos Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
 						<label for="cideapps_cf7_mailjet_attachment_retention_days"><?php esc_html_e( 'Días de retención de adjuntos', 'cideapps-cf7-mailjet' ); ?></label>
@@ -897,89 +1152,30 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 					<td>
 						<input type="number" id="cideapps_cf7_mailjet_attachment_retention_days" name="cideapps_cf7_mailjet_attachment_retention_days" value="<?php echo esc_attr( $attachment_retention_days ); ?>" class="small-text" min="0" max="3650" />
 						<p class="description">
-							<?php esc_html_e( 'Borra archivos antiguos solo en uploads/cideapps-cf7-mailjet/ (cron diario). 0 = desactivado (no borra, sin cron). Recomendado: 30.', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'Al guardar, el plugin reprograma el cron diario existente (WP-Cron) que elimina archivos más antiguos que este número de días. Solo afecta a uploads/cideapps-cf7-mailjet/.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '0 = desactivado: no se programa el cron y no se borran archivos automáticamente. Valor recomendado en producción: 30.', 'cideapps-cf7-mailjet' ); ?>
 						</p>
 					</td>
 				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_owner_notify_to_email"><?php esc_html_e( 'Email destino negocio', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<input type="email" id="cideapps_cf7_mailjet_owner_notify_to_email" name="cideapps_cf7_mailjet_owner_notify_to_email" value="<?php echo esc_attr( $owner_notify_to_email ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Correo donde recibirás los datos del lead.', 'cideapps-cf7-mailjet' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_owner_notify_mode"><?php esc_html_e( 'Modo de notificación negocio', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<select id="cideapps_cf7_mailjet_owner_notify_mode" name="cideapps_cf7_mailjet_owner_notify_mode">
-							<option value="template" <?php selected( $owner_notify_mode, 'template' ); ?>><?php esc_html_e( 'Template ID de Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
-							<option value="html_default" <?php selected( $owner_notify_mode, 'html_default' ); ?>><?php esc_html_e( 'HTML por defecto del plugin', 'cideapps-cf7-mailjet' ); ?></option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_owner_notify_template_id"><?php esc_html_e( 'Template ID negocio', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<input type="number" id="cideapps_cf7_mailjet_owner_notify_template_id" name="cideapps_cf7_mailjet_owner_notify_template_id" value="<?php echo esc_attr( $owner_notify_template_id ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "Template ID de Mailjet".', 'cideapps-cf7-mailjet' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_owner_notify_subject"><?php esc_html_e( 'Asunto (HTML por defecto)', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<input type="text" id="cideapps_cf7_mailjet_owner_notify_subject" name="cideapps_cf7_mailjet_owner_notify_subject" value="<?php echo esc_attr( $owner_notify_subject ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "HTML por defecto del plugin".', 'cideapps-cf7-mailjet' ); ?></p>
-					</td>
-				</tr>
 			</table>
-		</div>
 
-		<div id="security-settings" class="tab-content" style="display:none;">
-			<h2><?php esc_html_e( 'Configuración de Seguridad', 'cideapps-cf7-mailjet' ); ?></h2>
-			<table class="form-table">
+			<h3 class="title"><?php esc_html_e( 'Desinstalación', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_rate_limit_email_minutes"><?php esc_html_e( 'Rate Limit por Email (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<input type="number" id="cideapps_cf7_mailjet_rate_limit_email_minutes" name="cideapps_cf7_mailjet_rate_limit_email_minutes" value="<?php echo esc_attr( $rate_limit_email_minutes ); ?>" class="small-text" min="0" />
-						<p class="description"><?php esc_html_e( 'Tiempo en minutos entre envíos del mismo email (0 = deshabilitado)', 'cideapps-cf7-mailjet' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cideapps_cf7_mailjet_rate_limit_ip_minutes"><?php esc_html_e( 'Rate Limit por IP (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
-					</th>
-					<td>
-						<input type="number" id="cideapps_cf7_mailjet_rate_limit_ip_minutes" name="cideapps_cf7_mailjet_rate_limit_ip_minutes" value="<?php echo esc_attr( $rate_limit_ip_minutes ); ?>" class="small-text" min="0" />
-						<p class="description"><?php esc_html_e( 'Tiempo en minutos entre envíos desde la misma IP (0 = deshabilitado)', 'cideapps-cf7-mailjet' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Logs de Depuración', 'cideapps-cf7-mailjet' ); ?></th>
-					<td>
-						<label>
-							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, true ); ?> />
-							<?php esc_html_e( 'Habilitar logs de depuración (usar error_log de PHP)', 'cideapps-cf7-mailjet' ); ?>
-						</label>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Desinstalación', 'cideapps-cf7-mailjet' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Borrar uploads al desinstalar', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
 							<input type="checkbox" id="cideapps_cf7_mailjet_uninstall_delete_uploads" name="cideapps_cf7_mailjet_uninstall_delete_uploads" value="1" <?php checked( $uninstall_delete_uploads, true ); ?> />
-							<?php esc_html_e( 'Al desinstalar el plugin, eliminar también la carpeta uploads/cideapps-cf7-mailjet/', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'Eliminar la carpeta uploads/cideapps-cf7-mailjet/ al desinstalar el plugin', 'cideapps-cf7-mailjet' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( 'Desactivado por defecto. Solo aplica al eliminar el plugin por completo, no al desactivarlo.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Solo aplica cuando eliminas el plugin desde Plugins → Eliminar. No borra nada si solo desactivas el plugin.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Desactivado por defecto por seguridad. Actívalo solo si quieres limpiar adjuntos copiados al desinstalar.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -993,22 +1189,3 @@ $attachment_retention_days = Cideapps_Cf7_Mailjet_Upload_Cleanup::get_retention_
 		<input type="hidden" name="cideapps_cf7_mailjet_test_list" value="1" />
 	</form>
 </div>
-
-<script>
-jQuery(document).ready(function($) {
-	$('.nav-tab').on('click', function(e) {
-		e.preventDefault();
-		var target = $(this).attr('href');
-		$('.nav-tab').removeClass('nav-tab-active');
-		$(this).addClass('nav-tab-active');
-		$('.tab-content').hide();
-		$(target).show();
-	});
-});
-</script>
-
-<style>
-.tab-content {
-	margin-top: 20px;
-}
-</style>
