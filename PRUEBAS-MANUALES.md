@@ -507,7 +507,7 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Guardar desde Mailjet persiste API keys y From; otros tabs sin pérdida de datos
 - [x] No muestra formularios, mappings, metadata, rate limit, autorespuesta ni lista en `#mailjet-settings`
 
-**B3 — Tab Seguridad** — **validado** (revisión estática código, junio 2026; confirmar guardado y cron en staging)
+**B3 — Tab Seguridad** — **validado** (staging, junio 2026)
 
 - [x] Tab Seguridad muestra únicamente límites de envío, depuración, retención de adjuntos y desinstalación
 - [x] Subsecciones **Límites de envío**, **Depuración**, **Adjuntos**, **Desinstalación**
@@ -515,7 +515,7 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Retención **no** editable en Formularios (solo enlace a tab Seguridad en sección Adjuntos)
 - [x] POST handler y `reschedule_cron()` sin cambios; mismos `name` de inputs de seguridad
 - [x] `#security-settings` sin credenciales, formularios habilitados, mappings, autorespuesta ni lista
-- [ ] Guardar desde Seguridad persiste valores y cron de retención *(confirmar en staging, sección 11)*
+- [x] Guardar desde Seguridad persiste valores y cron de retención (sección 11)
 
 ### Epic C — Tab Formularios (lista)
 
