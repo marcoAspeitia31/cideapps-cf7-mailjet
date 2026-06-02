@@ -1093,37 +1093,58 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 			</div><!-- #forms-list -->
 		</div><!-- #forms-settings -->
 
-		<div id="security-settings" class="tab-content" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'security' ) ); ?>">
-			<h2><?php esc_html_e( 'Seguridad y mantenimiento', 'cideapps-cf7-mailjet' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'Límites, registros y limpieza. No configura envíos ni formularios.', 'cideapps-cf7-mailjet' ); ?></p>
-			<table class="form-table">
+		<div id="security-settings" class="tab-content cideapps-cf7-tab-security" style="<?php echo esc_attr( call_user_func( $cideapps_cf7_mailjet_tab_panel_style, 'security' ) ); ?>">
+			<h2><?php esc_html_e( 'Seguridad', 'cideapps-cf7-mailjet' ); ?></h2>
+			<p class="description cideapps-cf7-security-intro">
+				<?php esc_html_e( 'Operación, protección y mantenimiento del plugin. No configura Mailjet, formularios, plantillas ni envíos.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+
+			<h3 class="title"><?php esc_html_e( 'Límites de envío', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'Reduce envíos abusivos repetidos desde el mismo contacto o la misma IP. Usa 0 para desactivar cada límite.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_rate_limit_email_minutes"><?php esc_html_e( 'Rate Limit por Email (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_rate_limit_email_minutes"><?php esc_html_e( 'Rate limit por email (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
 						<input type="number" id="cideapps_cf7_mailjet_rate_limit_email_minutes" name="cideapps_cf7_mailjet_rate_limit_email_minutes" value="<?php echo esc_attr( $rate_limit_email_minutes ); ?>" class="small-text" min="0" />
-						<p class="description"><?php esc_html_e( 'Tiempo en minutos entre envíos del mismo email (0 = deshabilitado)', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Tiempo mínimo entre dos envíos con el mismo email del formulario.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cideapps_cf7_mailjet_rate_limit_ip_minutes"><?php esc_html_e( 'Rate Limit por IP (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
+						<label for="cideapps_cf7_mailjet_rate_limit_ip_minutes"><?php esc_html_e( 'Rate limit por IP (minutos)', 'cideapps-cf7-mailjet' ); ?></label>
 					</th>
 					<td>
 						<input type="number" id="cideapps_cf7_mailjet_rate_limit_ip_minutes" name="cideapps_cf7_mailjet_rate_limit_ip_minutes" value="<?php echo esc_attr( $rate_limit_ip_minutes ); ?>" class="small-text" min="0" />
-						<p class="description"><?php esc_html_e( 'Tiempo en minutos entre envíos desde la misma IP (0 = deshabilitado)', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Tiempo mínimo entre dos envíos desde la misma dirección IP.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Depuración', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Logs de Depuración', 'cideapps-cf7-mailjet' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Debug logs', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
 							<input type="checkbox" id="cideapps_cf7_mailjet_debug_logs" name="cideapps_cf7_mailjet_debug_logs" value="1" <?php checked( $debug_logs, true ); ?> />
-							<?php esc_html_e( 'Habilitar logs de depuración (usar error_log de PHP)', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'Habilitar logs de depuración en el log de PHP', 'cideapps-cf7-mailjet' ); ?>
 						</label>
+						<p class="description">
+							<?php esc_html_e( 'Escribe entradas con el prefijo [CIDEAPPS-CF7-MAILJET] en el error_log configurado en el servidor (por ejemplo wp-content/debug.log si WP_DEBUG_LOG está activo).', 'cideapps-cf7-mailjet' ); ?>
+						</p>
 					</td>
 				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'Limpieza de copias en uploads/cideapps-cf7-mailjet/ creadas para enlaces en correos Mailjet.', 'cideapps-cf7-mailjet' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
 						<label for="cideapps_cf7_mailjet_attachment_retention_days"><?php esc_html_e( 'Días de retención de adjuntos', 'cideapps-cf7-mailjet' ); ?></label>
@@ -1131,18 +1152,30 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 					<td>
 						<input type="number" id="cideapps_cf7_mailjet_attachment_retention_days" name="cideapps_cf7_mailjet_attachment_retention_days" value="<?php echo esc_attr( $attachment_retention_days ); ?>" class="small-text" min="0" max="3650" />
 						<p class="description">
-							<?php esc_html_e( 'Borra archivos antiguos solo en uploads/cideapps-cf7-mailjet/ (cron diario). 0 = desactivado (no borra, sin cron). Recomendado: 30.', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'Al guardar, el plugin reprograma el cron diario existente (WP-Cron) que elimina archivos más antiguos que este número de días. Solo afecta a uploads/cideapps-cf7-mailjet/.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '0 = desactivado: no se programa el cron y no se borran archivos automáticamente. Valor recomendado en producción: 30.', 'cideapps-cf7-mailjet' ); ?>
 						</p>
 					</td>
 				</tr>
+			</table>
+
+			<h3 class="title"><?php esc_html_e( 'Desinstalación', 'cideapps-cf7-mailjet' ); ?></h3>
+			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Desinstalación', 'cideapps-cf7-mailjet' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Borrar uploads al desinstalar', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
 							<input type="checkbox" id="cideapps_cf7_mailjet_uninstall_delete_uploads" name="cideapps_cf7_mailjet_uninstall_delete_uploads" value="1" <?php checked( $uninstall_delete_uploads, true ); ?> />
-							<?php esc_html_e( 'Al desinstalar el plugin, eliminar también la carpeta uploads/cideapps-cf7-mailjet/', 'cideapps-cf7-mailjet' ); ?>
+							<?php esc_html_e( 'Eliminar la carpeta uploads/cideapps-cf7-mailjet/ al desinstalar el plugin', 'cideapps-cf7-mailjet' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( 'Desactivado por defecto. Solo aplica al eliminar el plugin por completo, no al desactivarlo.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Solo aplica cuando eliminas el plugin desde Plugins → Eliminar. No borra nada si solo desactivas el plugin.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Desactivado por defecto por seguridad. Actívalo solo si quieres limpiar adjuntos copiados al desinstalar.', 'cideapps-cf7-mailjet' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>

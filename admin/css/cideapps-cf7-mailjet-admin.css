@@ -69,3 +69,23 @@
 	margin-top: 1.25em;
 	max-width: 720px;
 }
+
+.cideapps-cf7-tab-security .title {
+	margin: 1.75em 0 0.5em;
+	padding: 0;
+	font-size: 1.05em;
+}
+
+.cideapps-cf7-tab-security .title:first-of-type {
+	margin-top: 1em;
+}
+
+.cideapps-cf7-security-intro {
+	margin: 0 0 0.25em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-tab-security .form-table + .description,
+.cideapps-cf7-tab-security .title + .description {
+	max-width: 720px;
+}
