@@ -332,6 +332,9 @@ $enable_contact_list_raw = get_option( 'cideapps_cf7_mailjet_enable_contact_list
 $enable_contact_list     = ( $enable_contact_list_raw === 1 || $enable_contact_list_raw === '1' || $enable_contact_list_raw === true );
 $list_id                 = get_option( 'cideapps_cf7_mailjet_list_id', 0 );
 $on_existing_contact     = get_option( 'cideapps_cf7_mailjet_on_existing_contact', 'update_properties' );
+$on_existing_contact_label = ( 'skip' === $on_existing_contact )
+	? __( 'Omitir', 'cideapps-cf7-mailjet' )
+	: __( 'Actualizar propiedades', 'cideapps-cf7-mailjet' );
 $enabled_form_ids        = get_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
 $form_mail_modes         = get_option( 'cideapps_cf7_mailjet_form_mail_modes', array() );
 if ( ! is_array( $form_mail_modes ) ) {
@@ -557,101 +560,373 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 			<?php endif; ?>
 
 			<div id="form-detail" class="cideapps-cf7-admin-form-detail" style="<?php echo $show_form_detail ? '' : 'display:none;'; ?>">
-				<p class="cideapps-cf7-admin-back">
-					<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>">&larr; <?php esc_html_e( 'Volver a formularios', 'cideapps-cf7-mailjet' ); ?></a>
-				</p>
 				<?php if ( $show_form_detail ) : ?>
-					<h2>
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: %s: CF7 form title. */
-								__( 'Formulario: %s', 'cideapps-cf7-mailjet' ),
-								$cf7_forms[ $form_id_view ]
-							)
-						);
-						?>
-						<span class="description">(ID: <?php echo esc_html( (string) $form_id_view ); ?>)</span>
-					</h2>
-					<p class="description"><?php esc_html_e( 'Vista detalle (v1.4). Más secciones se añadirán en fases siguientes. La notificación interna se edita aquí.', 'cideapps-cf7-mailjet' ); ?></p>
-
-					<h3 class="title"><?php esc_html_e( 'Notificación interna al negocio', 'cideapps-cf7-mailjet' ); ?></h3>
-					<table class="form-table">
-						<tr>
-							<th scope="row">
-								<label for="cideapps_cf7_mailjet_owner_notify_to_email"><?php esc_html_e( 'Email destino negocio', 'cideapps-cf7-mailjet' ); ?></label>
-							</th>
-							<td>
-								<input type="email" id="cideapps_cf7_mailjet_owner_notify_to_email" name="cideapps_cf7_mailjet_owner_notify_to_email" value="<?php echo esc_attr( $owner_notify_to_email ); ?>" class="regular-text" />
-								<p class="description"><?php esc_html_e( 'Correo donde recibirás los datos del lead. (Almacenamiento global en v1.4.0; per-form en v1.4.1+.)', 'cideapps-cf7-mailjet' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="cideapps_cf7_mailjet_owner_notify_mode"><?php esc_html_e( 'Modo de notificación negocio', 'cideapps-cf7-mailjet' ); ?></label>
-							</th>
-							<td>
-								<select id="cideapps_cf7_mailjet_owner_notify_mode" name="cideapps_cf7_mailjet_owner_notify_mode">
-									<option value="template" <?php selected( $owner_notify_mode, 'template' ); ?>><?php esc_html_e( 'Template ID de Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
-									<option value="html_default" <?php selected( $owner_notify_mode, 'html_default' ); ?>><?php esc_html_e( 'HTML por defecto del plugin', 'cideapps-cf7-mailjet' ); ?></option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="cideapps_cf7_mailjet_owner_notify_template_id"><?php esc_html_e( 'Template ID negocio', 'cideapps-cf7-mailjet' ); ?></label>
-							</th>
-							<td>
-								<input type="number" id="cideapps_cf7_mailjet_owner_notify_template_id" name="cideapps_cf7_mailjet_owner_notify_template_id" value="<?php echo esc_attr( $owner_notify_template_id ); ?>" class="regular-text" />
-								<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "Template ID de Mailjet".', 'cideapps-cf7-mailjet' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="cideapps_cf7_mailjet_owner_notify_subject"><?php esc_html_e( 'Asunto (HTML por defecto)', 'cideapps-cf7-mailjet' ); ?></label>
-							</th>
-							<td>
-								<input type="text" id="cideapps_cf7_mailjet_owner_notify_subject" name="cideapps_cf7_mailjet_owner_notify_subject" value="<?php echo esc_attr( $owner_notify_subject ); ?>" class="regular-text" />
-								<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "HTML por defecto del plugin".', 'cideapps-cf7-mailjet' ); ?></p>
-							</td>
-						</tr>
-					</table>
-
-					<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
-					<p class="description">
-						<?php
-						if ( $enable_autoreply ) {
+					<?php
+					$form_detail_enabled = in_array( (int) $form_id_view, array_map( 'intval', (array) $enabled_form_ids ), true );
+					$form_detail_mode    = isset( $form_mail_modes[ $form_id_view ] ) ? $form_mail_modes[ $form_id_view ] : 'cf7_mail';
+					if ( ! in_array( $form_detail_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
+						$form_detail_mode = 'cf7_mail';
+					}
+					$form_detail_status_label  = $form_detail_enabled ? __( 'Activo', 'cideapps-cf7-mailjet' ) : __( 'Inactivo', 'cideapps-cf7-mailjet' );
+					$form_detail_channel_label = 'mailjet_only' === $form_detail_mode ? __( 'Mailjet API', 'cideapps-cf7-mailjet' ) : __( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' );
+					$dynamic_mappings_count    = 0;
+					foreach ( $dynamic_mappings_rows as $dynamic_row ) {
+						if ( ! empty( $dynamic_row['source'] ) || ! empty( $dynamic_row['target'] ) ) {
+							$dynamic_mappings_count++;
+						}
+					}
+					$attachment_mappings_count = 0;
+					foreach ( $attachment_mappings_rows as $attachment_row ) {
+						if ( ! empty( $attachment_row['source'] ) || ! empty( $attachment_row['target'] ) ) {
+							$attachment_mappings_count++;
+						}
+					}
+					$detail_uses_global_variables = Cideapps_Cf7_Mailjet_Form_Settings::uses_global_field_mappings( $form_id_view );
+					?>
+					<div class="cideapps-cf7-detail-header">
+						<p class="cideapps-cf7-admin-back">
+							<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>">&larr; <?php esc_html_e( 'Volver a formularios', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
+						<h2 class="cideapps-cf7-detail-title">
+							<?php
 							echo esc_html(
 								sprintf(
-									/* translators: %d: Mailjet template ID. */
-									__( 'Activa a nivel del sitio. Template ID: %d.', 'cideapps-cf7-mailjet' ),
-									(int) $template_id
+									/* translators: %s: CF7 form title. */
+									__( 'Formulario: %s', 'cideapps-cf7-mailjet' ),
+									$cf7_forms[ $form_id_view ]
 								)
 							);
-						} else {
-							esc_html_e( 'Desactivada a nivel del sitio.', 'cideapps-cf7-mailjet' );
-						}
-						?>
-						<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>#cideapps-cf7-global-site-settings"><?php esc_html_e( 'Editar configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
-					</p>
+							?>
+						</h2>
+						<p class="description cideapps-cf7-detail-id"><?php echo esc_html( sprintf( __( 'ID: %d', 'cideapps-cf7-mailjet' ), (int) $form_id_view ) ); ?></p>
+						<div class="cideapps-cf7-detail-summary">
+							<span class="cideapps-cf7-summary-pill"><?php echo esc_html( sprintf( __( 'Estado: %s', 'cideapps-cf7-mailjet' ), $form_detail_status_label ) ); ?></span>
+							<span class="cideapps-cf7-summary-pill"><?php echo esc_html( sprintf( __( 'Canal: %s', 'cideapps-cf7-mailjet' ), $form_detail_channel_label ) ); ?></span>
+						</div>
+						<p class="description"><?php esc_html_e( 'Shell visual de edición por formulario. En esta fase no se agregan controles nuevos de persistencia.', 'cideapps-cf7-mailjet' ); ?></p>
+						<div class="cideapps-cf7-detail-actions cideapps-cf7-detail-actions-top">
+							<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>" class="button button-secondary"><?php esc_html_e( 'Cancelar', 'cideapps-cf7-mailjet' ); ?></a>
+							<?php submit_button( __( 'Guardar Configuración', 'cideapps-cf7-mailjet' ), 'primary', 'cideapps_cf7_mailjet_settings_submit', false ); ?>
+						</div>
+					</div>
 
-					<h3 class="title"><?php esc_html_e( 'Lista Mailjet', 'cideapps-cf7-mailjet' ); ?></h3>
-					<p class="description">
-						<?php
-						if ( $enable_contact_list ) {
-							echo esc_html(
-								sprintf(
-									/* translators: %d: Mailjet list ID. */
-									__( 'Activa a nivel del sitio. List ID: %d.', 'cideapps-cf7-mailjet' ),
-									(int) $list_id
-								)
-							);
-						} else {
-							esc_html_e( 'Desactivada a nivel del sitio.', 'cideapps-cf7-mailjet' );
-						}
-						?>
-						<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>#cideapps-cf7-global-site-settings"><?php esc_html_e( 'Editar configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
-					</p>
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'General', 'cideapps-cf7-mailjet' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Controla la integración y el canal de este formulario. Solo afecta al formulario abierto en detalle.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Integración', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<label>
+										<input type="checkbox" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( (int) $form_id_view ); ?>" <?php checked( $form_detail_enabled ); ?> />
+										<?php esc_html_e( 'Activa para este formulario', 'cideapps-cf7-mailjet' ); ?>
+									</label>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Estado actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_status_label ) ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_detail_form_mail_mode"><?php esc_html_e( 'Canal de notificación interna', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<select id="cideapps_cf7_mailjet_detail_form_mail_mode" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( (int) $form_id_view ); ?>]">
+										<option value="cf7_mail" <?php selected( $form_detail_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' ); ?></option>
+										<option value="mailjet_only" <?php selected( $form_detail_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Mailjet API', 'cideapps-cf7-mailjet' ); ?></option>
+									</select>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Canal actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_channel_label ) ); ?></p>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Variables', 'cideapps-cf7-mailjet' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Define los mappings de variables para este formulario o usa la configuración global.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="cideapps-cf7-detail-toggle">
+							<label for="cideapps_cf7_mailjet_detail_use_global_variables">
+								<input type="hidden" name="cideapps_cf7_mailjet_form_settings[<?php echo esc_attr( (int) $form_id_view ); ?>][use_global_field_mappings]" value="0" />
+								<input type="checkbox" id="cideapps_cf7_mailjet_detail_use_global_variables" name="cideapps_cf7_mailjet_form_settings[<?php echo esc_attr( (int) $form_id_view ); ?>][use_global_field_mappings]" value="1" <?php checked( $detail_uses_global_variables, true ); ?> />
+								<?php esc_html_e( 'Usar configuración global de variables', 'cideapps-cf7-mailjet' ); ?>
+							</label>
+						</p>
+						<?php if ( $detail_uses_global_variables ) : ?>
+							<p class="description cideapps-cf7-detail-inherit-note"><?php esc_html_e( 'Este formulario hereda los mappings globales.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Desactiva esta opción para editar mappings personalizados de Email, Nombre, Teléfono, Servicio y Mensaje.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php elseif ( $cf7_use_field_selectors ) : ?>
+							<table class="form-table">
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_email_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Email', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'email_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'email_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_name_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Nombre', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'name_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'name_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_phone_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Teléfono', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'phone_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'phone_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_service_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Servicio', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'service_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'service_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_message_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Mensaje', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'message_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'message_field' ) ); ?></td>
+								</tr>
+							</table>
+							<p class="description"><?php esc_html_e( 'Si un tag guardado ya no existe en este formulario, se conserva como opción seleccionada.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'Contact Form 7 no está disponible; no se pueden listar campos para mappings personalizados.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
+					</div>
+
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Notificación interna', 'cideapps-cf7-mailjet' ); ?></h3>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Los cambios realizados en esta sección afectarán a todos los formularios configurados en el plugin.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<?php if ( 'mailjet_only' === $form_detail_mode ) : ?>
+							<p class="description"><?php esc_html_e( 'Este canal usa Mailjet API para la notificación interna.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'La notificación principal al negocio se gestiona desde la pestaña Mail de Contact Form 7.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
+						<table class="form-table">
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_owner_notify_to_email"><?php esc_html_e( 'Email destino negocio', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<input type="email" id="cideapps_cf7_mailjet_owner_notify_to_email" name="cideapps_cf7_mailjet_owner_notify_to_email" value="<?php echo esc_attr( $owner_notify_to_email ); ?>" class="regular-text" />
+									<p class="description"><?php esc_html_e( 'Correo donde recibirás los datos del lead. (Almacenamiento global en v1.4.0; per-form en v1.4.1+.)', 'cideapps-cf7-mailjet' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_owner_notify_mode"><?php esc_html_e( 'Modo de notificación negocio', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<select id="cideapps_cf7_mailjet_owner_notify_mode" name="cideapps_cf7_mailjet_owner_notify_mode">
+										<option value="template" <?php selected( $owner_notify_mode, 'template' ); ?>><?php esc_html_e( 'Template ID de Mailjet', 'cideapps-cf7-mailjet' ); ?></option>
+										<option value="html_default" <?php selected( $owner_notify_mode, 'html_default' ); ?>><?php esc_html_e( 'HTML por defecto del plugin', 'cideapps-cf7-mailjet' ); ?></option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_owner_notify_template_id"><?php esc_html_e( 'Template ID negocio', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<input type="number" id="cideapps_cf7_mailjet_owner_notify_template_id" name="cideapps_cf7_mailjet_owner_notify_template_id" value="<?php echo esc_attr( $owner_notify_template_id ); ?>" class="regular-text" />
+									<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "Template ID de Mailjet".', 'cideapps-cf7-mailjet' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_owner_notify_subject"><?php esc_html_e( 'Asunto (HTML por defecto)', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<input type="text" id="cideapps_cf7_mailjet_owner_notify_subject" name="cideapps_cf7_mailjet_owner_notify_subject" value="<?php echo esc_attr( $owner_notify_subject ); ?>" class="regular-text" />
+									<p class="description"><?php esc_html_e( 'Se usa cuando el modo es "HTML por defecto del plugin".', 'cideapps-cf7-mailjet' ); ?></p>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<?php
+					$cideapps_cf7_global_autoreply_url = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-autoreply';
+					$cideapps_cf7_global_list_url      = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-list-mailjet';
+					?>
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<p class="description"><?php esc_html_e( 'Se envía al email del visitante cuando el formulario se procesa correctamente.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_autoreply
+												? __( 'Activada', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivada', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<?php if ( $enable_autoreply ) : ?>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Template ID', 'cideapps-cf7-mailjet' ); ?></th>
+									<td>
+										<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $template_id ); ?></span>
+									</td>
+								</tr>
+							<?php endif; ?>
+						</table>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_autoreply_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
+					</div>
+
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Lista', 'cideapps-cf7-mailjet' ); ?></h3>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<p class="description"><?php esc_html_e( 'El contacto se guarda en Mailjet según la lista y la política configuradas.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_contact_list
+												? __( 'Activada', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivada', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<?php if ( $enable_contact_list ) : ?>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'List ID', 'cideapps-cf7-mailjet' ); ?></th>
+									<td>
+										<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $list_id ); ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Si el contacto ya existe', 'cideapps-cf7-mailjet' ); ?></th>
+									<td>
+										<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( $on_existing_contact_label ); ?></span>
+									</td>
+								</tr>
+							<?php endif; ?>
+						</table>
+						<p class="description"><?php esc_html_e( 'La prueba de conexión y alta de contacto de prueba está en la configuración global del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_list_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
+					</div>
+
+					<?php
+					$cideapps_cf7_global_metadata_url      = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-metadata';
+					$cideapps_cf7_global_attachments_url   = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-attachments';
+					$cideapps_cf7_security_attachments_url = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) . '#cideapps-cf7-security-attachments';
+					?>
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Metadata', 'cideapps-cf7-mailjet' ); ?></h3>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<?php if ( $enable_submission_metadata ) : ?>
+							<p class="description"><?php esc_html_e( 'Metadata automática habilitada. Incluye información adicional del envío y mappings dinámicos configurados globalmente.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'Metadata automática desactivada. Los mappings dinámicos del sitio se configuran en la configuración global.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_submission_metadata
+												? __( 'Activada', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivada', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Mappings dinámicos', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $dynamic_mappings_count ); ?></span>
+								</td>
+							</tr>
+						</table>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_metadata_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
+					</div>
+
+					<div class="cideapps-cf7-detail-card">
+						<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<p class="description"><?php esc_html_e( 'Copia archivos CF7 a uploads y expone URLs en variables Mailjet. La retención y limpieza se configuran en Seguridad.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_attachment_urls
+												? __( 'Activado', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivado', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Mappings de adjuntos', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $attachment_mappings_count ); ?></span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Retención', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											sprintf(
+												/* translators: %d: number of days files are kept. */
+												_n( '%d día', '%d días', (int) $attachment_retention_days, 'cideapps-cf7-mailjet' ),
+												(int) $attachment_retention_days
+											)
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+						</table>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_attachments_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+							<span class="cideapps-cf7-detail-link-separator" aria-hidden="true"> · </span>
+							<a href="<?php echo esc_url( $cideapps_cf7_security_attachments_url ); ?>"><?php esc_html_e( 'Configurar retención en Seguridad', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
+					</div>
+
+					<div class="cideapps-cf7-detail-actions cideapps-cf7-detail-actions-bottom">
+						<a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>" class="button button-secondary"><?php esc_html_e( 'Cancelar', 'cideapps-cf7-mailjet' ); ?></a>
+						<?php submit_button( __( 'Guardar Configuración', 'cideapps-cf7-mailjet' ), 'primary', 'cideapps_cf7_mailjet_settings_submit', false ); ?>
+					</div>
 				<?php endif; ?>
 			</div>
 
@@ -663,7 +938,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 					<summary><?php esc_html_e( 'Configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></summary>
 					<p class="description"><?php esc_html_e( 'Valores que aplican a todo el sitio. La notificación interna al negocio se configura por formulario desde Editar en la tabla.', 'cideapps-cf7-mailjet' ); ?></p>
 
-					<h3 class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
+					<h3 id="cideapps-cf7-global-autoreply" class="title"><?php esc_html_e( 'Autorespuesta', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Habilitar Autorespuesta', 'cideapps-cf7-mailjet' ); ?></th>
@@ -685,7 +960,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 				</tr>
 			</table>
 
-					<h3 class="title"><?php esc_html_e( 'Lista Mailjet', 'cideapps-cf7-mailjet' ); ?></h3>
+					<h3 id="cideapps-cf7-global-list-mailjet" class="title"><?php esc_html_e( 'Lista Mailjet', 'cideapps-cf7-mailjet' ); ?></h3>
 			<table class="form-table">
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Habilitar Lista de Contactos', 'cideapps-cf7-mailjet' ); ?></th>
@@ -787,6 +1062,9 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 							<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
 								<?php
 								$form_id_int  = (int) $form_id;
+								if ( $show_form_detail && $form_id_int === (int) $form_id_view ) {
+									continue;
+								}
 								$has_saved_mode = isset( $form_mail_modes[ $form_id_int ] );
 								$current_mode = $has_saved_mode ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
 								if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
@@ -924,7 +1202,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						<p class="description"><?php esc_html_e( 'Si está activado, se enviará el label humano (ej: "Apps Móviles") en lugar del value (ej: "apps-moviles") al template de Mailjet.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
-				<tr>
+				<tr id="cideapps-cf7-global-metadata">
 					<th scope="row"><?php esc_html_e( 'Metadata CF7 en Mailjet', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
@@ -989,7 +1267,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						</p>
 					</td>
 				</tr>
-				<tr>
+				<tr id="cideapps-cf7-global-attachments">
 					<th scope="row"><?php esc_html_e( 'Adjuntos CF7 (URLs en Mailjet)', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
@@ -1102,7 +1380,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 				</tr>
 			</table>
 
-			<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
+			<h3 id="cideapps-cf7-security-attachments" class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
 			<p class="description">
 				<?php esc_html_e( 'Limpieza de copias en uploads/cideapps-cf7-mailjet/ creadas para enlaces en correos Mailjet.', 'cideapps-cf7-mailjet' ); ?>
 			</p>
@@ -1143,7 +1421,9 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 			</table>
 		</div>
 
-		<?php submit_button( __( 'Guardar Configuración', 'cideapps-cf7-mailjet' ), 'primary', 'cideapps_cf7_mailjet_settings_submit' ); ?>
+		<?php if ( ! $show_form_detail ) : ?>
+			<?php submit_button( __( 'Guardar Configuración', 'cideapps-cf7-mailjet' ), 'primary', 'cideapps_cf7_mailjet_settings_submit' ); ?>
+		<?php endif; ?>
 	</form>
 
 	<form method="post" action="" id="cideapps-cf7-mailjet-test-form" style="display: none;" aria-hidden="true">

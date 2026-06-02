@@ -565,35 +565,71 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D1 — Navegación**
 
-- [ ] Vista detalle accesible desde la tabla y vuelve a la lista sin error
-- [ ] El título o encabezado identifica el formulario CF7 editado
+- [x] Vista detalle accesible desde la tabla y vuelve a la lista sin error
+- [x] El título o encabezado identifica el formulario CF7 editado
 
 **D2 — General**
 
-- [ ] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
-- [ ] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
+- [x] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
+- [x] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
+
+**Historial de validación D2**
+
+- [x] **Staging (junio 2026):** validación completa de controles General + Canal en detalle; sin impacto en otros formularios.
+- [x] Preservación confirmada: guardar desde detalle no vacía `enabled_form_ids` ni sobrescribe `form_mail_modes` de otros formularios.
 
 **D3 — Campos y variables**
 
-- [ ] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
-- [ ] Tags mostrados corresponden al `form_id` del detalle, no a otro formulario
-- [ ] Valores `(valor guardado)` se conservan si el tag ya no existe en el formulario
+- [x] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
+- [x] Tags mostrados corresponden al `form_id` del detalle, no a otro formulario
+- [x] Valores `(valor guardado)` se conservan si el tag ya no existe en el formulario
+
+**Historial de validación D3**
+
+- [x] **Staging (junio 2026):** validación completa de mappings por formulario y toggle de herencia global.
+- [x] Persistencia confirmada: mappings personalizados se conservan al alternar entre heredar global y personalizado.
 
 **D4 — Notificación interna (UI)**
 
-- [ ] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
-- [ ] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
-- [ ] Canal `cf7_mail` no envía notificación interna por Mailjet API
+- [x] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
+- [x] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
+- [x] Canal `cf7_mail` no envía notificación interna por Mailjet API
+- [x] Copy global explícito: cambios afectan a todos los formularios del plugin (notice informativo)
+
+**Historial de validación D4**
+
+- [x] **Staging (junio 2026):** validación funcional completa (campos, guardado global, canal `mailjet_only` / `cf7_mail`, logs).
+- [x] Copy UX reforzado: alcance global visible en card Notificación interna.
+- [x] Copy alineado con D5: sin promesa de versión futura; mensaje de alcance global del sitio.
 
 **D5 — Autorespuesta y lista (UI)**
 
-- [ ] Opciones de autorespuesta y lista accesibles desde el detalle (o aviso explícito si siguen globales en v1.4.0)
-- [ ] Autorespuesta y alta en lista siguen funcionando en envío real (regresión secciones 3–4)
+- [x] Cards Autorespuesta y Lista en detalle: solo lectura, notice global y enlace a configuración global
+- [x] Estado e IDs visibles cuando la opción está activa
+- [x] Guardar desde detalle no modifica autorespuesta ni lista (sin inputs duplicados en detalle)
+- [x] Autorespuesta y alta en lista siguen funcionando en envío real (regresión secciones 3–4)
+
+**Historial de validación D5**
+
+- [x] **Staging (junio 2026):** cards solo lectura, notices, enlaces a global (`#cideapps-cf7-global-autoreply` / `#cideapps-cf7-global-list-mailjet`), sin regresión en guardado ni envío.
 
 **D6 — Metadata y adjuntos (UI)**
 
-- [ ] Toggles/metadata y adjuntos accesibles desde el detalle (o sección equivalente)
-- [ ] Metadata y URLs de adjuntos en Mailjet sin regresión (secciones 7–8)
+- [x] Cards Metadata y Adjuntos en detalle: solo lectura, notice global y enlaces (global + Seguridad para retención)
+- [x] Estado y contadores visibles; retención en días solo lectura en detalle
+- [x] Guardar desde detalle no modifica metadata, mappings ni retención (sin inputs duplicados en detalle)
+- [x] Metadata y URLs de adjuntos en Mailjet sin regresión (secciones 7–8)
+
+**Historial de validación D6**
+
+- [x] **Staging (junio 2026):** cards solo lectura, enlaces `#cideapps-cf7-global-metadata`, `#cideapps-cf7-global-attachments`, `#cideapps-cf7-security-attachments`; regresión secciones 7–8 OK; D2–D5 sin regresión.
+
+**Epic D — Cierre**
+
+- [x] Epic D (**D1–D6**) completado y validado en staging (junio 2026).
+- [x] La experiencia principal del plugin es **formulario-céntrica** (tabla + detalle por `form_id`).
+- [x] La persistencia sigue siendo **híbrida**: per-form (integración, canal, mappings de 5 slots) + global (notificación interna, autorespuesta, lista, metadata, adjuntos en v1.4.0).
+- [x] Epic **E** continuará la transición hacia una UX **CF7-first** (mapeo visual centrado en tags reales); Epic **F** reducirá la dependencia visual de la configuración global.
 
 ### Epic E — Mapeo centrado en CF7 → Mailjet
 

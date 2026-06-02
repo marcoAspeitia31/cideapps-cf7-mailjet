@@ -209,18 +209,29 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 
 ## Epic D — Vista detalle por formulario
 
-| Fase | Entregable | Reutiliza |
-| ---- | ----------- | --------- |
-| D1 | Pantalla o ruta detalle (esqueleto + navegación volver) | — |
-| D2 | Sección **General**: activar integración; canal interno | Opciones actuales per-form |
-| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` |
-| D4 | Sección **Notificación interna** (UI) | Options globales actuales; mismo runtime |
-| D5 | Sección **Autorespuesta** y **Lista** (UI) | Options globales; copy claro «global hasta v1.4.1» |
-| D6 | Sección **Metadata** y **Adjuntos** (UI) | Options globales actuales |
+| Fase | Entregable | Reutiliza | Estado |
+| ---- | ----------- | --------- | ------ |
+| D1 | Pantalla o ruta detalle (esqueleto + navegación volver) | — | **Completado y validado** (staging, junio 2026) |
+| D2 | Sección **General**: activar integración; canal interno | Opciones actuales per-form | **Completado y validado** (staging, junio 2026) |
+| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` | **Completado y validado** (staging, junio 2026) |
+| D4 | Sección **Notificación interna** (UI) | Options globales actuales; mismo runtime | **Completado y validado** (staging, junio 2026) |
+| D5 | Sección **Autorespuesta** y **Lista** (UI) | Options globales; copy claro de alcance global | **Completado y validado** (staging, junio 2026) |
+| D6 | Sección **Metadata** y **Adjuntos** (UI) | Options globales actuales | **Completado y validado** (staging, junio 2026) |
+
+**Epic D (D1–D6):** **cerrado y validado en staging** (junio 2026).
+
+**Nota de cierre Epic D:**
+
+- La experiencia principal del plugin es ya **formulario-céntrica** (lista CF7 → detalle por `form_id` con cards por responsabilidad).
+- La **persistencia** sigue siendo **híbrida** en v1.4.0: configuración per-form para integración, canal y mappings de cinco slots; configuración global para notificación interna, autorespuesta, lista, metadata y adjuntos (detalle informativo o editable según el caso).
+- **Epic E** continuará la transición hacia una UX **CF7-first** (campos detectados y variables Mailjet como centro mental del mapeo).
+- **Epic F** complementará E al reducir la dependencia visual de los mappings globales sin romper el fallback en runtime.
 
 ---
 
 ## Epic E — Mapeo centrado en campos CF7 detectados
+
+**Estado:** Pendiente (siguiente epic de producto tras cierre Epic D).
 
 | Fase | Entregable |
 | ---- | ----------- |
@@ -234,6 +245,8 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 ---
 
 ## Epic F — Reducción de dependencia visual de globals
+
+**Estado:** Pendiente (recomendado después o en paralelo parcial con Epic E; ver análisis de roadmap).
 
 | Fase | Entregable |
 | ---- | ----------- |
