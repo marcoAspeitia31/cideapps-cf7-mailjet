@@ -4,7 +4,9 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 
 **Versión plugin probada:** 1.3.4 (`v1.3.4` — selector campos CF7)  
 **Última actualización:** junio 2026  
-**Estado:** Etapa v1.3.1 **completada** (staging + producción). Tag `v1.3.3` = refactor canal notificación (§14). **v1.3.4** selector campos CF7 validado (§15). Siguiente roadmap: **configuración avanzada por formulario CF7** (`ACTIVIDADES-FUTURAS.md` §2).
+**Estado v1.3.x:** **completada** (staging + producción). Validado: refactor canal (sección 14), selector campos CF7 (sección 15). Tag base post-v1.3.4: `5397d628d8b1508435295d2263688218b0aa305b`.
+
+**Siguiente objetivo de producto:** `v1.4.0` = **rediseño UX/Admin** (sin nuevas features técnicas hasta cerrar esta etapa). Roadmap: `ACTIVIDADES-FUTURAS.md` (Epics A–G). Checklist QA v1.4: **sección 16** de este archivo (pendiente de implementación).
 
 ---
 
@@ -42,7 +44,8 @@ Documento de validación manual del plugin. Incluye pruebas del plan original y 
 | Fase 2 — Uninstall limpio y seguro | OK | Commit de código Fase 2; validado en servidor de pruebas mayo 2026 (§12) |
 | Fase 3 — Guía despliegue + CHANGELOG | Docs | `docs/GUIA-DESPLIEGUE-CLIENTE.md`, `CHANGELOG.md` (§13) |
 | Refactor canal notificación interna | OK | UI + runtime simplificados; validado manualmente (§14) |
-| v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (§15) |
+| v1.3.4 — Selector visual campos CF7 | OK | PHP-only; `scan_form_tags`; validado manualmente (sección 15) |
+| v1.4.0 — Rediseño UX/Admin | Pendiente | Checklist sección 16; estrategia en `ACTIVIDADES-FUTURAS.md` |
 
 ---
 
@@ -400,7 +403,7 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 | Instalar en cliente nuevo | `docs/GUIA-DESPLIEGUE-CLIENTE.md` §9 |
 | Cambios por versión | `CHANGELOG.md` |
 
-**Roadmap siguiente:** configuración avanzada por formulario CF7 (`ACTIVIDADES-FUTURAS.md` §2). Propiedades avanzadas en lista Mailjet: prioridad media (`ACTIVIDADES-FUTURAS.md` §4).
+**Roadmap siguiente:** `v1.4.0` rediseño UX/Admin (`ACTIVIDADES-FUTURAS.md`, Epics B–G). QA en sección 16. Backlog técnico (mail-tags extra, export JSON, etc.) congelado hasta tag `v1.4.0`.
 
 ---
 
@@ -439,7 +442,7 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 ## 15. v1.3.4 — Selector visual de campos CF7
 
-**Release:** `v1.3.4` (distinto de `v1.3.3`, que corresponde al refactor del canal de notificación interna — §14).  
+**Release:** `v1.3.4` (distinto de `v1.3.3`, que corresponde al refactor del canal de notificación interna — sección 14).  
 **Alcance:** admin únicamente; lectura de tags CF7 vía `scan_form_tags()`; mismas options globales de mapping. Sin cambios en handler de envío, Mailjet API ni estructura de option names.  
 **Commit (código):** `feat(admin): add CF7 field selector for Mailjet mappings`  
 **Commit (docs):** `docs: document v1.3.4 CF7 field selector QA`  
@@ -461,6 +464,119 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Sin formularios habilitados: se listan campos de todos los formularios CF7 del sitio
 - [x] Opción **— Sin asignar —** permite vaciar un mapping
 - [x] Mapeos dinámicos y canal por formulario sin cambios en esta versión
+
+---
+
+## 16. v1.4.0 — Rediseño UX/Admin (checklist pendiente)
+
+**Release objetivo:** `v1.4.0`  
+**Alcance:** reorganización de la pantalla de administración. **Sin cambiar runtime** en las fases iniciales (Epics B–F): mismos `wp_options`, mismo comportamiento de envío.  
+**Roadmap:** `ACTIVIDADES-FUTURAS.md` (Epics A–G).  
+**Reglas de trabajo:** `REGLAS-TRABAJO.md` (QA obligatorio antes de commit; un epic ≈ una fase).  
+**Estado de este checklist:** pendiente — marcar ítems al validar cada fase en staging.
+
+### Criterio de cierre v1.4.0
+
+- [ ] Epics B–F implementados y validados según subsecciones siguientes
+- [ ] Regresión global (secciones 1–15) sin fallos nuevos atribuibles al rediseño admin
+- [ ] `CHANGELOG.md` actualizado y tag `v1.4.0` creado
+- [ ] `docs/GUIA-DESPLIEGUE-CLIENTE.md` refleja flujo por formulario (Epic G3)
+
+### Epic B — Navegación (3 tabs)
+
+**B1 — Shell Mailjet | Formularios | Seguridad**
+
+- [ ] Solo existen tres tabs principales (o equivalente claro); no se pierden opciones respecto a v1.3.4
+- [ ] Guardar configuración desde cada tab no borra datos guardados en otros tabs
+- [ ] Tras actualizar plugin en sitio con configuración existente, los valores previos siguen presentes
+
+**B2 — Tab Mailjet**
+
+- [ ] API Key, Secret Key, From Email, From Name visibles solo en este tab
+- [ ] Prueba de conexión Mailjet operativa desde este tab
+- [ ] Este tab no muestra lista de formularios, mappings, metadata ni rate limit
+
+**B3 — Tab Seguridad**
+
+- [ ] Rate limit por email e IP en este tab
+- [ ] Debug logs accesibles desde este tab
+- [ ] Retención de adjuntos y opciones de uninstall en este tab
+- [ ] Cron de limpieza de adjuntos sigue programado tras guardar (sin regresión, ver sección 11)
+
+### Epic C — Tab Formularios (lista)
+
+**C1 — Tabla de formularios CF7**
+
+- [ ] Se listan todos los formularios CF7 del sitio (o los detectados según diseño acordado)
+- [ ] Columna estado (activo/inactivo) coincide con `enabled_form_ids`
+- [ ] Columna canal resumido coincide con `form_mail_modes` (`cf7_mail` / `mailjet_only`)
+
+**C2 — Acciones**
+
+- [ ] **Editar** abre la vista detalle del formulario correcto (`form_id`)
+- [ ] **Restablecer** elimina solo configuración de ese formulario (p. ej. `cideapps_cf7_mailjet_form_settings[form_id]`, modo); no borra credenciales Mailjet ni options globales de cuenta
+
+### Epic D — Vista detalle por formulario
+
+**D1 — Navegación**
+
+- [ ] Vista detalle accesible desde la tabla y vuelve a la lista sin error
+- [ ] El título o encabezado identifica el formulario CF7 editado
+
+**D2 — General**
+
+- [ ] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
+- [ ] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
+
+**D3 — Campos y variables**
+
+- [ ] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
+- [ ] Tags mostrados corresponden al `form_id` del detalle, no a otro formulario
+- [ ] Valores `(valor guardado)` se conservan si el tag ya no existe en el formulario
+
+**D4 — Notificación interna (UI)**
+
+- [ ] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
+- [ ] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
+- [ ] Canal `cf7_mail` no envía notificación interna por Mailjet API
+
+**D5 — Autorespuesta y lista (UI)**
+
+- [ ] Opciones de autorespuesta y lista accesibles desde el detalle (o aviso explícito si siguen globales en v1.4.0)
+- [ ] Autorespuesta y alta en lista siguen funcionando en envío real (regresión secciones 3–4)
+
+**D6 — Metadata y adjuntos (UI)**
+
+- [ ] Toggles/metadata y adjuntos accesibles desde el detalle (o sección equivalente)
+- [ ] Metadata y URLs de adjuntos en Mailjet sin regresión (secciones 7–8)
+
+### Epic E — Mapeo centrado en CF7 → Mailjet
+
+- [ ] La sección de campos prioriza nombres reales de tags CF7 (`your-name`, etc.) sobre labels técnicos globales
+- [ ] Mappings dinámicos repetibles editables en el mismo contexto del formulario (cuando Epic E2 esté implementado)
+- [ ] Variables Mailjet usadas en plantillas siguen resolviéndose en envío de prueba
+
+### Epic F — Menor dependencia visual de globals
+
+- [ ] Mappings globales no son la vista principal; mensaje o UI invita a configurar por formulario
+- [ ] Lista o detalle indica **Personalizado** vs **Hereda global** cuando aplique
+- [ ] Formulario que hereda global se comporta igual que v1.3.4 sin reconfigurar
+
+### Regresión obligatoria post-rediseño (muestreo)
+
+Ejecutar al menos un formulario en staging con canal **Mailjet API** y otro con **Email nativo CF7** si el entorno lo permite:
+
+- [ ] Autorespuesta (sección 3)
+- [ ] Lista Mailjet (sección 4)
+- [ ] Notificación al negocio template y HTML (secciones 5–6)
+- [ ] Metadata opt-in (sección 7)
+- [ ] Adjuntos por URL (sección 8)
+- [ ] Mapeos dinámicos (sección 9)
+- [ ] Rate limit no confunde QA (pre-requisitos)
+
+### Notas para v1.4.1+ (fuera de cierre v1.4.0)
+
+Persistencia per-form de template, lista, autorespuesta y flags metadata/adjuntos requiere checklist aparte cuando exista en `ACTIVIDADES-FUTURAS.md` (Epic P1–P5). No bloquea el tag `v1.4.0` si la UI deja claro qué opciones siguen siendo globales.
 
 ---
 

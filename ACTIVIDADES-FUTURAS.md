@@ -148,7 +148,7 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 | Fase | Entregable |
 | ---- | ----------- |
 | A0 | Este roadmap actualizado (`ACTIVIDADES-FUTURAS.md`) |
-| A1 | Alinear intro y checklist v1.4 en `PRUEBAS-MANUALES.md` (commit docs aparte) |
+| A1 | Alinear intro y checklist v1.4 en `PRUEBAS-MANUALES.md` — **completado** (sección 16) |
 
 ---
 
