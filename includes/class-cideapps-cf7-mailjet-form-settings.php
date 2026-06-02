@@ -204,7 +204,7 @@ class Cideapps_Cf7_Mailjet_Form_Settings {
 	 * Sanitize per-form settings from admin POST or programmatic input.
 	 *
 	 * Structure: [ form_id => [ 'use_global_field_mappings' => bool, ...mapping keys ] ].
-	 * When use_global is true, mapping keys for that form are omitted from the result.
+	 * When use_global is true, mapping keys for that form are omitted from sanitized input.
 	 *
 	 * @param mixed $raw Raw input (typically $_POST fragment).
 	 * @return array<int, array<string, mixed>>
@@ -272,6 +272,18 @@ class Cideapps_Cf7_Mailjet_Form_Settings {
 			if ( $form_id <= 0 || ! is_array( $row ) ) {
 				continue;
 			}
+
+			// Preserve previously saved custom mappings when toggling back to global mode.
+			$existing_row = isset( $merged[ $form_id ] ) && is_array( $merged[ $form_id ] ) ? $merged[ $form_id ] : array();
+			$sets_global  = isset( $row[ self::USE_GLOBAL_FIELD_MAPPINGS_KEY ] ) && self::to_bool( $row[ self::USE_GLOBAL_FIELD_MAPPINGS_KEY ] );
+			if ( $sets_global && ! empty( $existing_row ) ) {
+				foreach ( self::FIELD_MAPPING_KEYS as $mapping_key ) {
+					if ( ! isset( $row[ $mapping_key ] ) && isset( $existing_row[ $mapping_key ] ) ) {
+						$row[ $mapping_key ] = sanitize_text_field( (string) $existing_row[ $mapping_key ] );
+					}
+				}
+			}
+
 			$merged[ $form_id ] = $row;
 		}
 

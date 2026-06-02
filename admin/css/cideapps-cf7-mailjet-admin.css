@@ -129,6 +129,14 @@
 	padding: 0;
 }
 
+.cideapps-cf7-detail-toggle {
+	margin: 0.5em 0;
+}
+
+.cideapps-cf7-detail-inherit-note {
+	font-weight: 600;
+}
+
 .cideapps-cf7-tab-mailjet .title {
 	margin: 1.75em 0 0.5em;
 	padding: 0;

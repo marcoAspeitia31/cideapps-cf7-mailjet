@@ -578,6 +578,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 							$attachment_mappings_count++;
 						}
 					}
+					$detail_uses_global_variables = Cideapps_Cf7_Mailjet_Form_Settings::uses_global_field_mappings( $form_id_view );
 					?>
 					<div class="cideapps-cf7-detail-header">
 						<p class="cideapps-cf7-admin-back">
@@ -637,8 +638,54 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 
 					<div class="cideapps-cf7-detail-card">
 						<h3 class="title"><?php esc_html_e( 'Variables', 'cideapps-cf7-mailjet' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'En D3 se habilitarán mappings por formulario y opción de heredar global.', 'cideapps-cf7-mailjet' ); ?></p>
-						<p class="description"><?php esc_html_e( 'Por ahora este bloque es informativo para validar la jerarquía visual del detalle.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Define los mappings de variables para este formulario o usa la configuración global.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="cideapps-cf7-detail-toggle">
+							<label for="cideapps_cf7_mailjet_detail_use_global_variables">
+								<input type="hidden" name="cideapps_cf7_mailjet_form_settings[<?php echo esc_attr( (int) $form_id_view ); ?>][use_global_field_mappings]" value="0" />
+								<input type="checkbox" id="cideapps_cf7_mailjet_detail_use_global_variables" name="cideapps_cf7_mailjet_form_settings[<?php echo esc_attr( (int) $form_id_view ); ?>][use_global_field_mappings]" value="1" <?php checked( $detail_uses_global_variables, true ); ?> />
+								<?php esc_html_e( 'Usar configuración global de variables', 'cideapps-cf7-mailjet' ); ?>
+							</label>
+						</p>
+						<?php if ( $detail_uses_global_variables ) : ?>
+							<p class="description cideapps-cf7-detail-inherit-note"><?php esc_html_e( 'Este formulario hereda los mappings globales.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Desactiva esta opción para editar mappings personalizados de Email, Nombre, Teléfono, Servicio y Mensaje.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php elseif ( $cf7_use_field_selectors ) : ?>
+							<table class="form-table">
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_email_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Email', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'email_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'email_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_name_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Nombre', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'name_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'name_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_phone_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Teléfono', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'phone_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'phone_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_service_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Servicio', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'service_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'service_field' ) ); ?></td>
+								</tr>
+								<tr>
+									<th scope="row">
+										<label for="<?php echo esc_attr( sprintf( '%s_%d_message_field', Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME, (int) $form_id_view ) ); ?>"><?php esc_html_e( 'Mensaje', 'cideapps-cf7-mailjet' ); ?></label>
+									</th>
+									<td><?php Cideapps_Cf7_Mailjet_Cf7_Field_Selector::render_form_mapping_select( $form_id_view, 'message_field', Cideapps_Cf7_Mailjet_Form_Settings::get_field_mapping( $form_id_view, 'message_field' ) ); ?></td>
+								</tr>
+							</table>
+							<p class="description"><?php esc_html_e( 'Si un tag guardado ya no existe en este formulario, se conserva como opción seleccionada.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'Contact Form 7 no está disponible; no se pueden listar campos para mappings personalizados.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
 					</div>
 
 					<div class="cideapps-cf7-detail-card">
