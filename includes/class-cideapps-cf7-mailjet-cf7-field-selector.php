@@ -253,6 +253,41 @@ class Cideapps_Cf7_Mailjet_Cf7_Field_Selector {
 	}
 
 	/**
+	 * Renders a per-form mapping select (tags from a single CF7 form only).
+	 *
+	 * @param int    $form_id       CF7 contact form post ID.
+	 * @param string $mapping_key   One of Form_Settings::FIELD_MAPPING_KEYS.
+	 * @param string $current_value Value to preselect.
+	 * @return void
+	 */
+	public static function render_form_mapping_select( $form_id, $mapping_key, $current_value ) {
+		$form_id = (int) $form_id;
+		if ( $form_id <= 0 || ! class_exists( 'Cideapps_Cf7_Mailjet_Form_Settings' ) ) {
+			return;
+		}
+
+		if ( ! Cideapps_Cf7_Mailjet_Form_Settings::is_valid_field_mapping_key( $mapping_key ) ) {
+			return;
+		}
+
+		$fields = self::collect_fields_for_form_ids( array( $form_id ) );
+		$name   = sprintf(
+			'%s[%d][%s]',
+			Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME,
+			$form_id,
+			$mapping_key
+		);
+		$id     = sprintf(
+			'%s_%d_%s',
+			Cideapps_Cf7_Mailjet_Form_Settings::OPTION_NAME,
+			$form_id,
+			$mapping_key
+		);
+
+		self::render_mapping_select( $id, $name, (string) $current_value, $fields );
+	}
+
+	/**
 	 * Whether a CF7 form tag should appear in mapping dropdowns.
 	 *
 	 * @param object $tag WPCF7_FormTag instance.

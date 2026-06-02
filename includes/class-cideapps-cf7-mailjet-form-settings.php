@@ -257,6 +257,28 @@ class Cideapps_Cf7_Mailjet_Form_Settings {
 	}
 
 	/**
+	 * Merge sanitized rows from admin POST into stored per-form settings.
+	 *
+	 * Forms omitted from POST keep their previous stored row.
+	 *
+	 * @param array<int, array<string, mixed>> $incoming Output of sanitize_settings().
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function merge_sanitized_settings( array $incoming ) {
+		$merged = self::get_all_settings();
+
+		foreach ( $incoming as $form_id => $row ) {
+			$form_id = (int) $form_id;
+			if ( $form_id <= 0 || ! is_array( $row ) ) {
+				continue;
+			}
+			$merged[ $form_id ] = $row;
+		}
+
+		return $merged;
+	}
+
+	/**
 	 * Normalize loose truthy/falsey values to boolean.
 	 *
 	 * @param mixed $value Raw value.
