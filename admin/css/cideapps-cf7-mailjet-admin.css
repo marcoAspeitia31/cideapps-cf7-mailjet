@@ -63,6 +63,72 @@
 	margin-top: 1.5em;
 }
 
+.cideapps-cf7-detail-header {
+	margin: 0 0 1.25em;
+}
+
+.cideapps-cf7-detail-title {
+	margin-bottom: 0.2em;
+}
+
+.cideapps-cf7-detail-id {
+	margin-top: 0;
+}
+
+.cideapps-cf7-detail-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0.5em 0 0.75em;
+}
+
+.cideapps-cf7-summary-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	border: 1px solid #c3c4c7;
+	border-radius: 999px;
+	background: #fff;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.cideapps-cf7-detail-card {
+	margin: 0 0 1em;
+	padding: 1em 1.25em;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.cideapps-cf7-detail-card .title {
+	margin: 0 0 0.5em;
+}
+
+.cideapps-cf7-detail-badge {
+	margin: 0 0 0.35em;
+	font-weight: 600;
+}
+
+.cideapps-cf7-detail-readonly-list {
+	margin: 0;
+	list-style: disc;
+	padding-left: 18px;
+}
+
+.cideapps-cf7-detail-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	margin: 1em 0;
+}
+
+.cideapps-cf7-detail-actions .submit {
+	margin: 0;
+	padding: 0;
+}
+
 .cideapps-cf7-tab-mailjet .title {
 	margin: 1.75em 0 0.5em;
 	padding: 0;
