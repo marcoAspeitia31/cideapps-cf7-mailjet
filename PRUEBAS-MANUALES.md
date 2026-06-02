@@ -615,8 +615,21 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D6 — Metadata y adjuntos (UI)**
 
-- [ ] Toggles/metadata y adjuntos accesibles desde el detalle (o sección equivalente)
-- [ ] Metadata y URLs de adjuntos en Mailjet sin regresión (secciones 7–8)
+- [x] Cards Metadata y Adjuntos en detalle: solo lectura, notice global y enlaces (global + Seguridad para retención)
+- [x] Estado y contadores visibles; retención en días solo lectura en detalle
+- [x] Guardar desde detalle no modifica metadata, mappings ni retención (sin inputs duplicados en detalle)
+- [x] Metadata y URLs de adjuntos en Mailjet sin regresión (secciones 7–8)
+
+**Historial de validación D6**
+
+- [x] **Staging (junio 2026):** cards solo lectura, enlaces `#cideapps-cf7-global-metadata`, `#cideapps-cf7-global-attachments`, `#cideapps-cf7-security-attachments`; regresión secciones 7–8 OK; D2–D5 sin regresión.
+
+**Epic D — Cierre**
+
+- [x] Epic D (**D1–D6**) completado y validado en staging (junio 2026).
+- [x] La experiencia principal del plugin es **formulario-céntrica** (tabla + detalle por `form_id`).
+- [x] La persistencia sigue siendo **híbrida**: per-form (integración, canal, mappings de 5 slots) + global (notificación interna, autorespuesta, lista, metadata, adjuntos en v1.4.0).
+- [x] Epic **E** continuará la transición hacia una UX **CF7-first** (mapeo visual centrado en tags reales); Epic **F** reducirá la dependencia visual de la configuración global.
 
 ### Epic E — Mapeo centrado en CF7 → Mailjet
 
