@@ -555,7 +555,11 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 - [x] **QA técnico local (junio 2026):** revisión de flujo, nonce/capability, limpieza de opciones por `form_id`, redirección y notices.
 - [x] **Bugfix C2 (junio 2026):** procesamiento de reset movido a `admin_init` (antes de output) para evitar warnings de headers.
-- [ ] **Validación staging (pendiente):** ejecutar restablecimiento real en al menos 2 formularios y confirmar aislamiento total.
+- [x] **Validación staging (junio 2026):** restablecimiento probado en múltiples formularios; sin warnings de headers, con redirección y notices correctos.
+
+**Epic C — Cierre**
+
+- [x] Epic C (**C1 + C2**) completado y validado en staging (junio 2026).
 
 ### Epic D — Vista detalle por formulario
 
