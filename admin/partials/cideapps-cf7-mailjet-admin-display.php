@@ -690,7 +690,13 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 
 					<div class="cideapps-cf7-detail-card">
 						<h3 class="title"><?php esc_html_e( 'Notificación interna', 'cideapps-cf7-mailjet' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'Configuración global en v1.4.0 (se muestra en detalle para facilitar edición).', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description cideapps-cf7-detail-badge"><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Se muestra aquí para facilitar la operación por formulario, pero aplica a todo el sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php if ( 'mailjet_only' === $form_detail_mode ) : ?>
+							<p class="description"><?php esc_html_e( 'Este canal usa Mailjet API para la notificación interna.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'La notificación principal al negocio se gestiona desde la pestaña Mail de Contact Form 7.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
 						<table class="form-table">
 							<tr>
 								<th scope="row">

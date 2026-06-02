@@ -591,9 +591,9 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D4 — Notificación interna (UI)**
 
-- [ ] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
-- [ ] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
-- [ ] Canal `cf7_mail` no envía notificación interna por Mailjet API
+- [x] Campos visibles: email destino negocio, modo template/HTML, template ID, asunto
+- [x] Envío en canal `mailjet_only` se comporta igual que v1.3.4 (validar warnings de sección 14)
+- [x] Canal `cf7_mail` no envía notificación interna por Mailjet API
 
 **D5 — Autorespuesta y lista (UI)**
 
