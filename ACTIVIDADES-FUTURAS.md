@@ -190,7 +190,7 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 
 | Fase | Entregable | QA esperado | Estado |
 | ---- | ----------- | ----------- | ------ |
-| C1 | Tabla simple: Formulario, Estado, Canal, Editar (`form_id` en URL) | Coincide con `enabled_form_ids` y `form_mail_modes` | Implementado (QA staging) |
+| C1 | Tabla simple: Formulario, Estado, Canal, Editar (`form_id` en URL) | Coincide con `enabled_form_ids` y `form_mail_modes` | **Completado y validado** (staging, junio 2026) |
 | C2 | Acción Restablecer por `form_id` (confirmación; sin tocar global/Mailjet) | Solo un formulario | Pendiente |
 
 ### Plan técnico C1 (alcance reducido — aprobado)

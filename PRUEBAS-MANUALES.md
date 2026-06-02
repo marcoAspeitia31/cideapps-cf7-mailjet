@@ -521,15 +521,21 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **C1 — Tabla simple (alcance reducido)**
 
-- [ ] Tab **Formularios** muestra tabla `wp-list-table` (sin acordeón ni checkboxes visibles por formulario)
-- [ ] Se listan todos los formularios CF7 detectados (título + ID en columna Formulario)
-- [ ] Columna **Estado** (Activo/Inactivo) coincide con `cideapps_cf7_mailjet_enabled_form_ids`
-- [ ] Columna **Canal** coincide con `cideapps_cf7_mailjet_form_mail_modes` (`cf7_mail` → texto nativo CF7; `mailjet_only` → Mailjet API)
-- [ ] **Editar** enlaza a `?page=cideapps-cf7-mailjet&tab=forms&form_id={id}` y abre `#form-detail` del formulario correcto
-- [ ] **Volver a formularios** desde detalle regresa a la lista sin error
-- [ ] Guardar configuración desde la lista **no** vacía `enabled_form_ids` ni cambia canales (bloque oculto de preservación)
-- [ ] Configuración global colapsada y mappings globales siguen visibles debajo de la tabla
-- [ ] **No** en C1: Restablecer, badges herencia, columna mappings, filtros, búsqueda, métricas
+- [x] Tab **Formularios** muestra tabla `wp-list-table` (sin acordeón ni checkboxes visibles por formulario)
+- [x] Se listan todos los formularios CF7 detectados (título + ID en columna Formulario)
+- [x] Columna **Estado** (Activo/Inactivo) coincide con `cideapps_cf7_mailjet_enabled_form_ids`
+- [x] Columna **Canal** coincide con `cideapps_cf7_mailjet_form_mail_modes` (`cf7_mail` → texto nativo CF7; `mailjet_only` → Mailjet API)
+- [x] **Editar** enlaza a `?page=cideapps-cf7-mailjet&tab=forms&form_id={id}` y abre `#form-detail` del formulario correcto
+- [x] **Volver a formularios** desde detalle regresa a la lista sin error
+- [x] Guardar configuración desde la lista **no** vacía `enabled_form_ids` ni cambia canales (bloque oculto de preservación)
+- [x] Configuración global colapsada y mappings globales siguen visibles debajo de la tabla
+- [x] **No** en C1: Restablecer, badges herencia, columna mappings, filtros, búsqueda, métricas
+
+**Historial de validación C1**
+
+- [x] **Staging (junio 2026):** validación integral completada por producto/QA; C1 se cierra como entregado.
+- [x] Evidencia funcional confirmada: tabla, columnas (Formulario/Estado/Canal), navegación Editar/Volver y preservación al guardar.
+- [x] Alcance respetado: sin Restablecer, sin badges de herencia, sin indicadores de mappings, sin filtros, sin búsqueda, sin métricas.
 
 **C2 — Restablecer (pendiente de implementación)**
 
