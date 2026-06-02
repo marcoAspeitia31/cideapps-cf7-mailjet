@@ -537,9 +537,23 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 - [x] Evidencia funcional confirmada: tabla, columnas (Formulario/Estado/Canal), navegación Editar/Volver y preservación al guardar.
 - [x] Alcance respetado: sin Restablecer, sin badges de herencia, sin indicadores de mappings, sin filtros, sin búsqueda, sin métricas.
 
-**C2 — Restablecer (pendiente de implementación)**
+**C2 — Restablecer por formulario**
 
-- [ ] **Restablecer** elimina solo configuración de ese formulario (p. ej. `cideapps_cf7_mailjet_form_settings[form_id]`, modo); no borra credenciales Mailjet ni options globales de cuenta
+- [x] Tabla Formularios muestra acción **Restablecer** por fila junto a **Editar**
+- [x] Acción protegida con nonce propio y validación `manage_options`
+- [x] Confirmación UX antes de ejecutar el restablecimiento
+- [x] Restablecer elimina solo `cideapps_cf7_mailjet_form_settings[form_id]`
+- [x] Restablecer elimina solo ese `form_id` de `cideapps_cf7_mailjet_enabled_form_ids`
+- [x] Restablecer elimina solo `cideapps_cf7_mailjet_form_mail_modes[form_id]`
+- [x] Redirección posterior a `?page=cideapps-cf7-mailjet&tab=forms`
+- [x] Notice visible de éxito/error tras redirección
+- [x] Bloque hidden de preservación no reinyecta `form_mail_modes[form_id]` tras reset
+- [x] No modifica credenciales/globales/seguridad/logs/retención ni otros formularios
+
+**Historial de validación C2**
+
+- [x] **QA técnico local (junio 2026):** revisión de flujo, nonce/capability, limpieza de opciones por `form_id`, redirección y notices.
+- [ ] **Validación staging (pendiente):** ejecutar restablecimiento real en al menos 2 formularios y confirmar aislamiento total.
 
 ### Epic D — Vista detalle por formulario
 

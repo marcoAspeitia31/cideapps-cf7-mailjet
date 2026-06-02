@@ -277,6 +277,64 @@ if ( isset( $_POST['cideapps_cf7_mailjet_settings_submit'] ) && check_admin_refe
 	$settings_saved = true;
 }
 
+// Handle per-form reset action from Forms table (Epic C2).
+if ( isset( $_POST['cideapps_cf7_mailjet_reset_form_id'] ) ) {
+	$redirect_url = add_query_arg(
+		array(
+			'page' => 'cideapps-cf7-mailjet',
+			'tab'  => 'forms',
+		),
+		admin_url( 'options-general.php' )
+	);
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_forbidden', $redirect_url );
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	$nonce_valid = isset( $_POST['cideapps_cf7_mailjet_reset_form_nonce'] )
+		&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cideapps_cf7_mailjet_reset_form_nonce'] ) ), 'cideapps_cf7_mailjet_reset_form' );
+	if ( ! $nonce_valid ) {
+		$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_invalid_nonce', $redirect_url );
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	$reset_form_id = (int) $_POST['cideapps_cf7_mailjet_reset_form_id'];
+	if ( $reset_form_id <= 0 ) {
+		$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_invalid_form', $redirect_url );
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	$enabled_form_ids = get_option( 'cideapps_cf7_mailjet_enabled_form_ids', array() );
+	$enabled_form_ids = is_array( $enabled_form_ids ) ? array_map( 'intval', $enabled_form_ids ) : array();
+	$enabled_form_ids = array_values(
+		array_filter(
+			$enabled_form_ids,
+			static function ( $form_id ) use ( $reset_form_id ) {
+				return (int) $form_id !== $reset_form_id;
+			}
+		)
+	);
+	update_option( 'cideapps_cf7_mailjet_enabled_form_ids', $enabled_form_ids );
+
+	$form_mail_modes = get_option( 'cideapps_cf7_mailjet_form_mail_modes', array() );
+	$form_mail_modes = is_array( $form_mail_modes ) ? $form_mail_modes : array();
+	unset( $form_mail_modes[ $reset_form_id ] );
+	update_option( 'cideapps_cf7_mailjet_form_mail_modes', $form_mail_modes );
+
+	$form_settings = get_option( 'cideapps_cf7_mailjet_form_settings', array() );
+	$form_settings = is_array( $form_settings ) ? $form_settings : array();
+	unset( $form_settings[ $reset_form_id ] );
+	update_option( 'cideapps_cf7_mailjet_form_settings', $form_settings );
+
+	$redirect_url = add_query_arg( 'cideapps_cf7_mailjet_notice', 'reset_success', $redirect_url );
+	wp_safe_redirect( $redirect_url );
+	exit;
+}
+
 // Show success message if settings were saved
 if ( isset( $settings_saved ) && $settings_saved ) {
 	echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Configuración guardada correctamente.', 'cideapps-cf7-mailjet' ) . '</p></div>';
@@ -285,6 +343,19 @@ if ( isset( $settings_saved ) && $settings_saved ) {
 // Show test result message if test was performed
 if ( isset( $test_message ) && isset( $test_notice_type ) ) {
 	echo '<div class="notice notice-' . esc_attr( $test_notice_type ) . ' is-dismissible"><p>' . wp_kses_post( $test_message ) . '</p></div>';
+}
+
+if ( isset( $_GET['cideapps_cf7_mailjet_notice'] ) ) {
+	$notice_code = sanitize_key( wp_unslash( $_GET['cideapps_cf7_mailjet_notice'] ) );
+	if ( 'reset_success' === $notice_code ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Formulario restablecido correctamente.', 'cideapps-cf7-mailjet' ) . '</p></div>';
+	} elseif ( 'reset_invalid_form' === $notice_code ) {
+		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'No se pudo restablecer: formulario inválido.', 'cideapps-cf7-mailjet' ) . '</p></div>';
+	} elseif ( 'reset_invalid_nonce' === $notice_code ) {
+		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'No se pudo restablecer: validación de seguridad fallida.', 'cideapps-cf7-mailjet' ) . '</p></div>';
+	} elseif ( 'reset_forbidden' === $notice_code ) {
+		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'No tienes permisos para restablecer formularios.', 'cideapps-cf7-mailjet' ) . '</p></div>';
+	}
 }
 
 // Get Contact Form 7 forms
@@ -733,7 +804,8 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 								<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
 									<?php
 									$form_id_int  = (int) $form_id;
-									$current_mode = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
+									$has_saved_mode = isset( $form_mail_modes[ $form_id_int ] );
+									$current_mode = $has_saved_mode ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
 									if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
 										$current_mode = 'cf7_mail';
 									}
@@ -756,16 +828,25 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 										<td class="column-channel"><?php echo esc_html( $channel_label ); ?></td>
 										<td class="column-action">
 											<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-secondary"><?php esc_html_e( 'Editar', 'cideapps-cf7-mailjet' ); ?></a>
+											<button
+												type="submit"
+												name="cideapps_cf7_mailjet_reset_form_id"
+												value="<?php echo esc_attr( $form_id_int ); ?>"
+												class="button button-link-delete cideapps-cf7-reset-form-btn"
+												onclick="return confirm('<?php echo esc_js( __( '¿Restablecer este formulario? Solo se limpiará su configuración en este plugin.', 'cideapps-cf7-mailjet' ) ); ?>');"
+											><?php esc_html_e( 'Restablecer', 'cideapps-cf7-mailjet' ); ?></button>
 										</td>
 									</tr>
 								<?php endforeach; ?>
 							</tbody>
 						</table>
+						<?php wp_nonce_field( 'cideapps_cf7_mailjet_reset_form', 'cideapps_cf7_mailjet_reset_form_nonce' ); ?>
 						<div class="cideapps-cf7-forms-list-preservation" hidden aria-hidden="true">
 							<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
 								<?php
 								$form_id_int  = (int) $form_id;
-								$current_mode = isset( $form_mail_modes[ $form_id_int ] ) ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
+								$has_saved_mode = isset( $form_mail_modes[ $form_id_int ] );
+								$current_mode = $has_saved_mode ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
 								if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {
 									$current_mode = 'cf7_mail';
 								}
@@ -774,7 +855,9 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 								<?php if ( $is_enabled ) : ?>
 									<input type="hidden" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( $form_id_int ); ?>" />
 								<?php endif; ?>
-								<input type="hidden" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" value="<?php echo esc_attr( $current_mode ); ?>" />
+								<?php if ( $has_saved_mode ) : ?>
+									<input type="hidden" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( $form_id_int ); ?>]" value="<?php echo esc_attr( $current_mode ); ?>" />
+								<?php endif; ?>
 							<?php endforeach; ?>
 						</div>
 						<p class="description cideapps-cf7-forms-table-note">
