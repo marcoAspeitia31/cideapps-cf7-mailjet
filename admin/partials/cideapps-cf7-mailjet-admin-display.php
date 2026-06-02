@@ -608,11 +608,31 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 
 					<div class="cideapps-cf7-detail-card">
 						<h3 class="title"><?php esc_html_e( 'General', 'cideapps-cf7-mailjet' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'En D2 se activarán los controles de integración y canal para este formulario.', 'cideapps-cf7-mailjet' ); ?></p>
-						<ul class="cideapps-cf7-detail-readonly-list">
-							<li><?php echo esc_html( sprintf( __( 'Estado actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_status_label ) ); ?></li>
-							<li><?php echo esc_html( sprintf( __( 'Canal actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_channel_label ) ); ?></li>
-						</ul>
+						<p class="description"><?php esc_html_e( 'Controla la integración y el canal de este formulario. Solo afecta al formulario abierto en detalle.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Integración', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<label>
+										<input type="checkbox" name="cideapps_cf7_mailjet_enabled_form_ids[]" value="<?php echo esc_attr( (int) $form_id_view ); ?>" <?php checked( $form_detail_enabled ); ?> />
+										<?php esc_html_e( 'Activa para este formulario', 'cideapps-cf7-mailjet' ); ?>
+									</label>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Estado actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_status_label ) ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="cideapps_cf7_mailjet_detail_form_mail_mode"><?php esc_html_e( 'Canal de notificación interna', 'cideapps-cf7-mailjet' ); ?></label>
+								</th>
+								<td>
+									<select id="cideapps_cf7_mailjet_detail_form_mail_mode" name="cideapps_cf7_mailjet_form_mail_modes[<?php echo esc_attr( (int) $form_id_view ); ?>]">
+										<option value="cf7_mail" <?php selected( $form_detail_mode, 'cf7_mail' ); ?>><?php esc_html_e( 'Email nativo de Contact Form 7', 'cideapps-cf7-mailjet' ); ?></option>
+										<option value="mailjet_only" <?php selected( $form_detail_mode, 'mailjet_only' ); ?>><?php esc_html_e( 'Mailjet API', 'cideapps-cf7-mailjet' ); ?></option>
+									</select>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Canal actual: %s', 'cideapps-cf7-mailjet' ), $form_detail_channel_label ) ); ?></p>
+								</td>
+							</tr>
+						</table>
 					</div>
 
 					<div class="cideapps-cf7-detail-card">
@@ -865,6 +885,9 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 							<?php foreach ( $cf7_forms as $form_id => $form_title ) : ?>
 								<?php
 								$form_id_int  = (int) $form_id;
+								if ( $show_form_detail && $form_id_int === (int) $form_id_view ) {
+									continue;
+								}
 								$has_saved_mode = isset( $form_mail_modes[ $form_id_int ] );
 								$current_mode = $has_saved_mode ? $form_mail_modes[ $form_id_int ] : 'cf7_mail';
 								if ( ! in_array( $current_mode, array( 'cf7_mail', 'mailjet_only' ), true ) ) {

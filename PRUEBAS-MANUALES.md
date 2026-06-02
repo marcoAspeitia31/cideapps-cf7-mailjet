@@ -570,8 +570,8 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D2 — General**
 
-- [ ] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
-- [ ] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
+- [x] Activar/desactivar integración para el formulario equivale al comportamiento actual de formularios habilitados
+- [x] Canal de notificación interna por formulario se guarda y aplica igual que en v1.3.4
 
 **D3 — Campos y variables**
 
