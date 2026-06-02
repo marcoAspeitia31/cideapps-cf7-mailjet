@@ -580,9 +580,14 @@ Este apartado **no sustituye** las pruebas funcionales de §11–12. El checklis
 
 **D3 — Campos y variables**
 
-- [ ] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
-- [ ] Tags mostrados corresponden al `form_id` del detalle, no a otro formulario
-- [ ] Valores `(valor guardado)` se conservan si el tag ya no existe en el formulario
+- [x] Mappings per-form (cinco slots + heredar global) funcionan con `Cf7_Field_Selector`
+- [x] Tags mostrados corresponden al `form_id` del detalle, no a otro formulario
+- [x] Valores `(valor guardado)` se conservan si el tag ya no existe en el formulario
+
+**Historial de validación D3**
+
+- [x] **Staging (junio 2026):** validación completa de mappings por formulario y toggle de herencia global.
+- [x] Persistencia confirmada: mappings personalizados se conservan al alternar entre heredar global y personalizado.
 
 **D4 — Notificación interna (UI)**
 

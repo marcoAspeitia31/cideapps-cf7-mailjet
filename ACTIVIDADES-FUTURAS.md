@@ -213,7 +213,7 @@ Cada epic = **una responsabilidad** = **una fase** = **un commit funcional** cua
 | ---- | ----------- | --------- | ------ |
 | D1 | Pantalla o ruta detalle (esqueleto + navegación volver) | — | **Completado y validado** (staging, junio 2026) |
 | D2 | Sección **General**: activar integración; canal interno | Opciones actuales per-form | **Completado y validado** (staging, junio 2026) |
-| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` | Pendiente |
+| D3 | Sección **Campos y variables**: mappings con field selector | `Cf7_Field_Selector`, `Form_Settings` | **Completado y validado** (staging, junio 2026) |
 | D4 | Sección **Notificación interna** (UI) | Options globales actuales; mismo runtime | Pendiente |
 | D5 | Sección **Autorespuesta** y **Lista** (UI) | Options globales; copy claro «global hasta v1.4.1» | Pendiente |
 | D6 | Sección **Metadata** y **Adjuntos** (UI) | Options globales actuales | Pendiente |
