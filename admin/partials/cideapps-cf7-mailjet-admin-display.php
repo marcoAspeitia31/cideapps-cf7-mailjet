@@ -828,21 +828,99 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						</p>
 					</div>
 
+					<?php
+					$cideapps_cf7_global_metadata_url      = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-metadata';
+					$cideapps_cf7_global_attachments_url   = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) . '#cideapps-cf7-global-attachments';
+					$cideapps_cf7_security_attachments_url = call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) . '#cideapps-cf7-security-attachments';
+					?>
 					<div class="cideapps-cf7-detail-card">
 						<h3 class="title"><?php esc_html_e( 'Metadata', 'cideapps-cf7-mailjet' ); ?></h3>
-						<p class="description cideapps-cf7-detail-badge"><?php esc_html_e( 'Global (solo lectura en detalle)', 'cideapps-cf7-mailjet' ); ?></p>
-						<p class="description"><?php echo esc_html( $enable_submission_metadata ? __( 'Metadata CF7 activa a nivel global.', 'cideapps-cf7-mailjet' ) : __( 'Metadata CF7 desactivada a nivel global.', 'cideapps-cf7-mailjet' ) ); ?></p>
-						<p class="description"><?php echo esc_html( sprintf( __( 'Mappings dinámicos configurados: %d', 'cideapps-cf7-mailjet' ), (int) $dynamic_mappings_count ) ); ?></p>
-						<p class="description"><a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'forms' ) ); ?>#cideapps-cf7-global-site-settings"><?php esc_html_e( 'Ver configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a></p>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<?php if ( $enable_submission_metadata ) : ?>
+							<p class="description"><?php esc_html_e( 'Metadata automática habilitada. Incluye información adicional del envío y mappings dinámicos configurados globalmente.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php esc_html_e( 'Metadata automática desactivada. Los mappings dinámicos del sitio se configuran en la configuración global.', 'cideapps-cf7-mailjet' ); ?></p>
+						<?php endif; ?>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_submission_metadata
+												? __( 'Activada', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivada', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Mappings dinámicos', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $dynamic_mappings_count ); ?></span>
+								</td>
+							</tr>
+						</table>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_metadata_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
 					</div>
 
 					<div class="cideapps-cf7-detail-card">
 						<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
-						<p class="description cideapps-cf7-detail-badge"><?php esc_html_e( 'Global (solo lectura en detalle)', 'cideapps-cf7-mailjet' ); ?></p>
-						<p class="description"><?php echo esc_html( $enable_attachment_urls ? __( 'Copiado de adjuntos y URLs Mailjet activo a nivel global.', 'cideapps-cf7-mailjet' ) : __( 'Copiado de adjuntos y URLs Mailjet desactivado a nivel global.', 'cideapps-cf7-mailjet' ) ); ?></p>
-						<p class="description"><?php echo esc_html( sprintf( __( 'Mappings de adjuntos configurados: %d', 'cideapps-cf7-mailjet' ), (int) $attachment_mappings_count ) ); ?></p>
-						<p class="description"><?php echo esc_html( sprintf( __( 'Retención actual: %d días (configurable en Seguridad).', 'cideapps-cf7-mailjet' ), (int) $attachment_retention_days ) ); ?></p>
-						<p class="description"><a href="<?php echo esc_url( call_user_func( $cideapps_cf7_mailjet_admin_tab_url, 'security' ) ); ?>"><?php esc_html_e( 'Ir a Seguridad', 'cideapps-cf7-mailjet' ); ?></a></p>
+						<div class="notice notice-info inline cideapps-cf7-detail-notice">
+							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
+						</div>
+						<p class="description"><?php esc_html_e( 'Copia archivos CF7 a uploads y expone URLs en variables Mailjet. La retención y limpieza se configuran en Seguridad.', 'cideapps-cf7-mailjet' ); ?></p>
+						<table class="form-table cideapps-cf7-detail-readonly-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Estado', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											$enable_attachment_urls
+												? __( 'Activado', 'cideapps-cf7-mailjet' )
+												: __( 'Desactivado', 'cideapps-cf7-mailjet' )
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Mappings de adjuntos', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value"><?php echo esc_html( (string) (int) $attachment_mappings_count ); ?></span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Retención', 'cideapps-cf7-mailjet' ); ?></th>
+								<td>
+									<span class="cideapps-cf7-detail-readonly-value">
+										<?php
+										echo esc_html(
+											sprintf(
+												/* translators: %d: number of days files are kept. */
+												_n( '%d día', '%d días', (int) $attachment_retention_days, 'cideapps-cf7-mailjet' ),
+												(int) $attachment_retention_days
+											)
+										);
+										?>
+									</span>
+								</td>
+							</tr>
+						</table>
+						<p class="cideapps-cf7-detail-global-link">
+							<a href="<?php echo esc_url( $cideapps_cf7_global_attachments_url ); ?>"><?php esc_html_e( 'Editar en configuración global del sitio', 'cideapps-cf7-mailjet' ); ?></a>
+							<span class="cideapps-cf7-detail-link-separator" aria-hidden="true"> · </span>
+							<a href="<?php echo esc_url( $cideapps_cf7_security_attachments_url ); ?>"><?php esc_html_e( 'Configurar retención en Seguridad', 'cideapps-cf7-mailjet' ); ?></a>
+						</p>
 					</div>
 
 					<div class="cideapps-cf7-detail-actions cideapps-cf7-detail-actions-bottom">
@@ -1124,7 +1202,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						<p class="description"><?php esc_html_e( 'Si está activado, se enviará el label humano (ej: "Apps Móviles") en lugar del value (ej: "apps-moviles") al template de Mailjet.', 'cideapps-cf7-mailjet' ); ?></p>
 					</td>
 				</tr>
-				<tr>
+				<tr id="cideapps-cf7-global-metadata">
 					<th scope="row"><?php esc_html_e( 'Metadata CF7 en Mailjet', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
@@ -1189,7 +1267,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						</p>
 					</td>
 				</tr>
-				<tr>
+				<tr id="cideapps-cf7-global-attachments">
 					<th scope="row"><?php esc_html_e( 'Adjuntos CF7 (URLs en Mailjet)', 'cideapps-cf7-mailjet' ); ?></th>
 					<td>
 						<label>
@@ -1302,7 +1380,7 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 				</tr>
 			</table>
 
-			<h3 class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
+			<h3 id="cideapps-cf7-security-attachments" class="title"><?php esc_html_e( 'Adjuntos', 'cideapps-cf7-mailjet' ); ?></h3>
 			<p class="description">
 				<?php esc_html_e( 'Limpieza de copias en uploads/cideapps-cf7-mailjet/ creadas para enlaces en correos Mailjet.', 'cideapps-cf7-mailjet' ); ?>
 			</p>
