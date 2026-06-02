@@ -695,8 +695,8 @@ $cideapps_cf7_mailjet_tab_panel_style = static function( $tab ) use ( $active_ad
 						<h3 class="title"><?php esc_html_e( 'Notificación interna', 'cideapps-cf7-mailjet' ); ?></h3>
 						<div class="notice notice-info inline cideapps-cf7-detail-notice">
 							<p><?php esc_html_e( 'Configuración global en v1.4.0.', 'cideapps-cf7-mailjet' ); ?></p>
+							<p><?php esc_html_e( 'Actualmente esta configuración es global y aplica a todos los formularios del sitio.', 'cideapps-cf7-mailjet' ); ?></p>
 							<p><?php esc_html_e( 'Los cambios realizados en esta sección afectarán a todos los formularios configurados en el plugin.', 'cideapps-cf7-mailjet' ); ?></p>
-							<p><?php esc_html_e( 'La configuración individual por formulario estará disponible en una versión futura.', 'cideapps-cf7-mailjet' ); ?></p>
 						</div>
 						<?php if ( 'mailjet_only' === $form_detail_mode ) : ?>
 							<p class="description"><?php esc_html_e( 'Este canal usa Mailjet API para la notificación interna.', 'cideapps-cf7-mailjet' ); ?></p>
