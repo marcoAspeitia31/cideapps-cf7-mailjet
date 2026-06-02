@@ -137,6 +137,23 @@
 	font-weight: 600;
 }
 
+.cideapps-cf7-detail-notice {
+	margin: 0 0 1em;
+	max-width: 720px;
+}
+
+.cideapps-cf7-detail-notice p {
+	margin: 0.35em 0;
+}
+
+.cideapps-cf7-detail-notice p:first-child {
+	margin-top: 0;
+}
+
+.cideapps-cf7-detail-notice p:last-child {
+	margin-bottom: 0;
+}
+
 .cideapps-cf7-tab-mailjet .title {
 	margin: 1.75em 0 0.5em;
 	padding: 0;
